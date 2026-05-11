@@ -1,34 +1,52 @@
 <div align="center">
-  <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&size=28&duration=3000&pause=500&color=00FF00&center=true&vCenter=true&width=600&lines=⚔️+KHAN+TOOLKIT+⚔️;Professional+Red+Team+Suite;For+Educational+Use+Only" alt="Typing SVG" />
+  <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&weight=700&size=34&duration=3500&pause=500&color=00FF41&center=true&vCenter=true&width=750&lines=┌──[⚡+KHAN+TOOLKIT+⚡]──┐;│+Professional+Red+Team+Suite+│;└──[For+Educational+Use+Only]──┘" alt="Typing SVG" />
 </div>
 
+<br>
+
 <div align="center">
-  <img src="https://img.shields.io/badge/Status-Active-success?style=for-the-badge&logo=github&logoColor=white"/>
-  <img src="https://img.shields.io/badge/Version-2.1-blue?style=for-the-badge&logo=python&logoColor=white"/>
-  <img src="https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge&logo=opensourceinitiative&logoColor=white"/>
-  <img src="https://komarev.com/ghpvc/?username=irisbloodyred&label=Profile%20Views&color=0e75b6&style=for-the-badge" alt="Profile Views" />
+  <img src="https://media.giphy.com/media/xT9IgzoKnwFNmISR8I/giphy.gif" width="280"/>
+  <img src="https://media.giphy.com/media/ZVik7pBtu9dNS/giphy.gif" width="280"/>
+  <img src="https://media.giphy.com/media/l0MYEqEzwMWFCg8rm/giphy.gif" width="280"/>
 </div>
+
+<br>
+
+<div align="center">
+  <img src="https://img.shields.io/badge/STATUS-🟢_ACTIVE-00FF41?style=for-the-badge"/>
+  <img src="https://img.shields.io/badge/VERSION-2.1-00FF41?style=for-the-badge"/>
+  <img src="https://img.shields.io/badge/LICENSE-MIT-00FF41?style=for-the-badge"/>
+  <img src="https://komarev.com/ghpvc/?username=irisbloodyred&label=🔍%20PROFILE%20VIEWS&color=00FF41&style=for-the-badge"/>
+</div>
+
+
 
 ---
 
-## 🔥 ABOUT ME
+
+<br>
+
+# 🔥 ABOUT ME
 
 - **Name:** Rehan Ahmad
 - **Alias:** Khan Hacker
 - **Role:** Red Team Security Researcher
-- **Student ID:** 1271527
+- **Focus:** Cybersecurity • Ethical Hacking • Red Teaming
 - **Mission:** Hack to Secure, Not to Destroy
+- **Learning:** Web Security | Network Security | OSINT | Exploit Research
 
 ---
+<br>
 
-## 🛠️ WORKING ON
+# 🛠️ WORKING ON
 
 - **Khan Toolkit** — Professional Red Team Cybersecurity Suite
 - 🔗 [https://github.com/irisbloodyred/cyber-khan-arsenal](https://github.com/irisbloodyred/cyber-khan-arsenal)
 
 ---
+<br>
 
-## 🚀 CURRENT LEARNING
+# 🚀 CURRENT LEARNING
 
 - Advanced Red Teaming
 - Exploit Development
@@ -36,24 +54,27 @@
 - Blockchain Security
 
 ---
+<br>
 
-## 🤝 LOOKING TO COLLABORATE ON
+# 🤝 LOOKING TO COLLABORATE ON
 
 - Open Source Cybersecurity Projects
 - Penetration Testing Tools
 - Ethical Hacking Frameworks
 
 ---
+<br>
 
-## 🙏 LOOKING FOR HELP WITH
+# LOOKING FOR HELP WITH
 
 - Advanced WAF Bypass Techniques
 - Mobile Security Testing
 - Cloud Pentesting
 
 ---
+<br>
 
-## 💬 ASK ME ABOUT
+# 💬 ASK ME ABOUT
 
 - Python Security
 - Flask Framework
@@ -62,8 +83,9 @@
 - Hydra, John, Nmap
 
 ---
+<br>
 
-## 📫 REACH ME
+# 📫 REACH ME
 
 <div align="center">
   <a href="mailto:rehantanoli8609@gmail.com">
@@ -81,26 +103,30 @@
 </div>
 
 ---
+<br>
 
-## 📂 PROJECTS
+# 📂 PROJECTS
 
 🔗 [https://github.com/irisbloodyred](https://github.com/irisbloodyred)
 
 ---
+<br>
 
-## ✍️ BLOGS (Coming Soon)
+# ✍️ BLOGS (Coming Soon)
 
 🔗 Cybersecurity Blog on Medium / Tech Blog (Coming Soon)
 
 ---
+<br>
 
-## ⚡ FUN FACT
+# ⚡ FUN FACT
 
 > *"With great power comes great responsibility — I hack to secure, not to destroy."*
 
 ---
+<br>
 
-## 🛠️ LANGUAGES & TOOLS
+# 🛠️ LANGUAGES & TOOLS
 
 <div align="center">
   <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white"/>
@@ -116,8 +142,148 @@
 </div>
 
 ---
+<br>
 
-## 💖 SUPPORT
+# 📦 INSTALLATION GUIDE
+
+<br>
+
+## 🐧 Kali Linux / Ubuntu / Debian
+
+### **Step 1: Clone Repository**
+
+```bash
+git clone https://github.com/irisbloodyred/cyber-khan-arsenal.git
+```
+### Step 2: Go to Backend Directory
+```bash
+
+cd cyber-khan-arsenal/backend
+```
+
+### Step 3: Create Virtual Environment
+```bash
+
+python3 -m venv venv
+```
+### Step 4: Activate Virtual Environment
+```bash
+
+source venv/bin/activate
+```
+### Step 5: Install Dependencies
+```bash
+
+pip install -r requirements.txt
+```
+### Step 6: Run the Toolkit
+```bash
+
+sudo python3 app.py
+```
+<br>
+
+## 📱 Termux (Android Mobile)
+
+### Step 1: Update Packages
+```bash
+
+pkg update && pkg upgrade
+```
+
+### Step 2: Install Git and Python
+```bash
+
+pkg install git python
+```
+### Step 3: Clone Repository
+```bash
+
+git clone https://github.com/irisbloodyred/cyber-khan-arsenal.git
+```
+### Step 4: Go to Backend Directory
+```bash
+
+cd cyber-khan-arsenal/backend
+```
+### Step 5: Install Python Dependencies
+```bash
+
+pip install flask flask-cors flask-limiter requests
+```
+### Step 6: Run the Toolkit
+```bash
+
+python3 app.py
+```
+### Step 7: Open in Browser
+```bash
+
+http://localhost:5000
+```
+##### Optional: Create Virtual Environment
+```bash
+
+python3 -m venv venv
+```
+##### Optional: Activate Virtual Environment
+```bash
+
+source venv/bin/activate
+```
+##### Optional: Install from requirements.txt
+```bash
+
+pip install -r requirements.txt
+```
+<br>
+
+## 🪟 Windows (WSL)
+
+
+### Step 1: Install Windows Subsystem for Linux
+```bash
+
+wsl --install
+```
+### Step 2: Restart your PC when prompted
+
+### Step 3: Launch Ubuntu/WSL from Start Menu
+
+### Step 4: Then follow the Linux installation steps above
+
+<br>
+
+
+
+# ⚠️ LEGAL DISCLAIMER
+<br>
+
+
+<div align="center">
+  
+| ✅ **DO** | ❌ **DON'T** |
+|-----------|--------------|
+| Use on your own systems | Use without permission |
+| Get written authorization | Hack illegally |
+| Learn ethical hacking | Misuse the toolkit |
+
+</div>
+
+> ### 🔴 **FOR EDUCATIONAL & AUTHORIZED TESTING ONLY WITH KHAN ACCESS**
+
+<div align="center">
+  <img src="https://img.shields.io/badge/⚠️-MISUSE%20IS%20ILLEGAL-red?style=for-the-badge"/>
+  <img src="https://img.shields.io/badge/🔒-YOU%20ARE%20RESPONSIBLE-orange?style=for-the-badge"/>
+</div>
+
+> *"With great power comes great responsibility — Stay ethical stay legal KHAN - HACKER."*
+
+<div align="center">
+  <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&size=14&duration=3000&pause=500&color=FF0000&center=true&vCenter=true&width=400&lines=UNAUTHORIZED+USE+IS+STRICTLY+PROHIBITED" />
+</div>
+
+# 💖 SUPPORT
 
 <div align="center">
   <a href="https://github.com/irisbloodyred/cyber-khan-arsenal/stargazers">
@@ -125,12 +291,16 @@
   </a>
 </div>
 
+<br>
+
 | Support Way | Action |
 |-------------|--------|
 | ⭐ **Star** | Star this repository on GitHub |
 | 📢 **Share** | Share with fellow security researchers |
 | 🐛 **Issues** | Report bugs via GitHub Issues |
 | 🔧 **PR** | Submit improvements via Pull Requests |
+
+<br>
 
 ### 📱 Connect for Support
 
@@ -140,6 +310,8 @@
 | 📨 Telegram | [@KhanHackerRedTeam](https://t.me/KhanHackerRedTeam) |
 | 📧 Email | [rehantanoli8609@gmail.com](mailto:rehantanoli8609@gmail.com) |
 
+<br>
+
 <div align="center">
   <a href="https://www.buymeacoffee.com/yourusername">
     <img src="https://img.shields.io/badge/Buy_Me_A_Coffee-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black"/>
@@ -147,6 +319,7 @@
 </div>
 
 ---
+<br>
 
 <div align="center">
   <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&size=20&duration=3000&pause=500&color=00FF00&center=true&vCenter=true&width=500&lines=Stay+Hungry.+Stay+Foolish.+Stay+Ethical." />
