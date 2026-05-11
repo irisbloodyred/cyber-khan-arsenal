@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>KHAN PAK SIM DATABASE</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background-color: #000;
+            min-height: 100vh;
+            font-family: 'Poppins', 'Segoe UI', monospace;
+            position: relative;
+            overflow-x: hidden;
+            color: #fff;
+            padding: 20px;
+        }
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at 30% 10%, #0a0a0a, #000);
+        }
+        @keyframes goldShine {
+            0% { text-shadow: 0 0 2px #FFD700, 0 0 5px #B8860B; }
+            100% { text-shadow: 0 0 12px #FFD700, 0 0 20px #DAA520; }
+        }
+        .gold-animate {
+            font-family: 'Cinzel', serif;
+            font-size: 1.8rem;
+            font-weight: bold;
+            text-align: center;
+            background: linear-gradient(135deg, #FFD700, #DAA520, #B8860B);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: goldShine 1.5s infinite alternate;
+            margin-bottom: 0.8rem;
+            letter-spacing: 2px;
+            display: block;
+            width: 100%;
+        }
+        .logo-area { text-align: center; margin: 0.5rem 0 0.8rem 0; }
+        .logo-img {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: 2px solid #FFD700;
+            box-shadow: 0 0 20px rgba(255,215,0,0.4);
+            object-fit: cover;
+        }
+        .authorize-note {
+            text-align: center;
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #ffaa33;
+            border-bottom: 1px dashed #ffaa33;
+            display: inline-block;
+            width: auto;
+            margin: 0 auto 1.2rem auto;
+            padding-bottom: 0.2rem;
+        }
+        .glass-card {
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            border-radius: 28px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 15px rgba(212, 175, 55, 0.2);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .input-group { display: flex; flex-direction: column; gap: 0.8rem; margin-top: 0.5rem; }
+        .input-field {
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid #D4AF37;
+            border-radius: 60px;
+            padding: 12px 20px;
+            color: #FFD700;
+            font-size: 1rem;
+            font-family: monospace;
+            outline: none;
+            width: 100%;
+        }
+        .input-field:focus { border-color: #FFD700; box-shadow: 0 0 12px #ffd70055; }
+        .search-btn {
+            background: linear-gradient(95deg, #B8860B, #D4AF37, #FFD700);
+            border: none;
+            border-radius: 60px;
+            padding: 12px 20px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: 0.2s;
+            color: black;
+            font-family: 'Cinzel', serif;
+            letter-spacing: 1px;
+        }
+        .search-btn:hover { transform: scale(1.02); box-shadow: 0 0 20px #FFD700; }
+        .result-item {
+            background: rgba(0, 0, 0, 0.5);
+            border-left: 4px solid #FFD700;
+            border-radius: 20px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .result-field { margin-bottom: 0.5rem; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.5rem; }
+        .field-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #FFD700;
+            min-width: 85px;
+        }
+        .field-value { font-size: 1rem; font-weight: bold; color: #fff; word-break: break-word; }
+        .cnic-value { color: #FFA500; font-family: monospace; letter-spacing: 1px; }
+        .network-value { color: #00e0ff; }
+        .address-value { color: #ccc; font-style: italic; white-space: pre-line; line-height: 1.4; }
+        .stats-container {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+        .stat-card {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid #D4AF37;
+            border-radius: 40px;
+            padding: 0.5rem 1.2rem;
+            text-align: center;
+        }
+        .stat-number { font-size: 1.5rem; font-weight: bold; color: #FFD700; }
+        .stat-label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 1px; }
+        .error-msg { text-align: center; color: #ff8888; background: #330000; border-radius: 40px; padding: 0.6rem; margin-top: 1rem; }
+        .no-data { text-align: center; color: #ffaa66; padding: 1rem; font-style: italic; }
+        .footer-note { text-align: center; font-size: 0.65rem; color: #aaa; margin-top: 1rem; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeInUp 0.4s ease; }
+        .sim-balloon {
+            position: fixed; right: 25px; top: 120px; cursor: pointer; z-index: 100; animation: balloonFloat 3s ease-in-out infinite;
+        }
+        .balloon-gold {
+            width: 110px; height: 140px; background: radial-gradient(circle at 30% 30%, #D4AF37, #B8860B);
+            border-radius: 50%; box-shadow: 0 0 25px #D4AF37; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; color: black; font-family: monospace; font-size: 0.7rem;
+            text-align: center; font-weight: bold; position: relative;
+        }
+        .balloon-string {
+            position: absolute; bottom: -35px; left: 50%; width: 2px; height: 35px; background: #8B4513; transform: translateX(-50%);
+        }
+        .balloon-string::after { content: ''; position: absolute; bottom: -5px; left: -3px; width: 8px; height: 8px; background: #8B4513; border-radius: 50%; }
+        @keyframes balloonFloat { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
+        .burst-particle {
+            position: fixed; width: 8px; height: 8px; background: #D4AF37; border-radius: 50%; pointer-events: none;
+            z-index: 9999; animation: flyAway 0.8s forwards;
+        }
+        @keyframes flyAway { 0% { transform: scale(1); opacity: 1; } 100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; } }
+        .sim-sidebar {
+            position: fixed; top: 0; right: 0; width: 420px; height: 100vh;
+            background: linear-gradient(145deg, #1a1a0a, #2a2a1a); border-left: 3px solid #D4AF37;
+            box-shadow: -5px 0 30px rgba(212,175,55,0.4); transform: translateX(100%); transition: transform 0.4s ease;
+            z-index: 1000; overflow-y: auto; padding: 25px; font-family: monospace; color: #ffdd99;
+        }
+        .sim-sidebar.active { transform: translateX(0); }
+        .sim-sidebar h3 { color: #D4AF37; border-bottom: 1px solid #D4AF37; margin-bottom: 20px; }
+        .sim-sidebar pre { background: rgba(0,0,0,0.6); padding: 10px; border-radius: 8px; font-size: 12px; margin: 10px 0; }
+        .close-sidebar { position: absolute; top: 15px; right: 20px; background: transparent; border: none; color: #D4AF37; font-size: 24px; cursor: pointer; }
+        .close-sidebar:hover { color: red; }
+        @media (max-width: 700px) { .sim-balloon { right: 10px; top: 80px; transform: scale(0.8); } .sim-sidebar { width: 300px; } .gold-animate { font-size: 1.4rem; } }
+        .modal-popup {
+            display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.9); backdrop-filter: blur(8px); align-items: center; justify-content: center;
+        }
+        .modal-content {
+            background: linear-gradient(145deg, #1a1a1a, #0a0a0a); border: 2px solid #D4AF37; border-radius: 30px;
+            padding: 30px; text-align: center; max-width: 400px; width: 90%; box-shadow: 0 0 50px rgba(212,175,55,0.5);
+            animation: fadeInScale 0.3s ease;
+        }
+        @keyframes fadeInScale { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        .modal-content h2 { color: #FFD700; margin-bottom: 20px; font-size: 1.6rem; }
+        .modal-buttons { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
+        .modal-btn {
+            background: #222; border: 1px solid #D4AF37; color: #D4AF37; padding: 10px 20px;
+            border-radius: 40px; cursor: pointer; font-weight: bold; transition: 0.2s; font-family: monospace;
+        }
+        .modal-btn:hover { background: #D4AF37; color: black; transform: scale(1.02); box-shadow: 0 0 15px #D4AF37; }
+        .close-modal { position: absolute; top: 15px; right: 25px; font-size: 28px; cursor: pointer; color: #D4AF37; }
+        .close-modal:hover { color: red; }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <canvas id="bg-canvas"></canvas>
+    <div style="max-width: 700px; margin: 2rem auto 0 auto;">
+        <div class="gold-animate">✨ KHAN-HACKER PAK SIM DATABASE ✨</div>
+        <div class="logo-area">
+            <img class="logo-img" src="data:image/jpeg;base64,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" alt="Khan Logo" onerror="this.src='https://img.icons8.com/color/96/khan.png'; this.onerror=null;">
+        </div>
+        <div style="text-align: center;">
+            <div class="authorize-note">🔐 ONLY USE FOR AUTHORIZED EDUCATION PURPOSE 🔐</div>
+        </div>
+
+        <div class="glass-card">
+            <div class="input-group">
+                <input type="text" id="simInput" class="input-field" placeholder="📱 Enter Phone Number or CNIC (digits only)" autocomplete="off">
+                <button id="searchBtn" class="search-btn">⬇️ KHAN SEARCH ENGINE ⬇️</button>
+            </div>
+            <div id="errorMsg" class="error-msg" style="display: none;"></div>
+        </div>
+
+        <div id="resultContainer" style="display: none;"></div>
+
+        <div class="glass-card" id="statsCard">
+            <div class="stats-container">
+                <div class="stat-card"><div class="stat-number" id="totalUsers">0</div><div class="stat-label">TOTAL USERS</div></div>
+                <div class="stat-card"><div class="stat-number" id="totalChecks">0</div><div class="stat-label">TOTAL CHECKS</div></div>
+                <div class="stat-card"><div class="stat-number" style="color:#4ade80;">● LIVE</div><div class="stat-label">STATUS</div></div>
+            </div>
+            <div class="footer-note">All data of victom | All records stored securely</div>
+        </div>
+        <div style="text-align: center; margin-top: 0.8rem;">
+            <a href="home.html" style="color: #D4AF37; text-decoration: none; border: 1px solid #D4AF37; padding: 5px 15px; border-radius: 40px; font-size: 0.7rem;">⬅ BACK TO HOME</a>
+        </div>
+    </div>
+
+    <!-- Balloon + Sidebar -->
+    <div id="simBalloon" class="sim-balloon">
+        <div class="balloon-gold">
+            <div class="balloon-text">🎈<br>How to use &<br>Disclaimer</div>
+            <div class="balloon-string"></div>
+        </div>
+    </div>
+    <div id="simSidebar" class="sim-sidebar">
+        <button class="close-sidebar" id="closeSidebarBtn">✖</button>
+        <h3>📘 HOW TO USE PAK SIM DATABASE</h3>
+        <pre>1. Enter a valid phone number (10-13 digits) or CNIC (13 digits).
+2. Click "KHAN SEARCH ENGINE".
+3. Results show Name, CNIC, Phone, Address.</pre>
+        <h4>⚠️ EDUCATIONAL PURPOSE ONLY</h4>
+        <pre>• Do NOT misuse any obtained information.
+• All searches are logged for statistics (IP, timestamp).</pre>
+        <div class="warning" style="background:rgba(255,0,0,0.2); border-left:3px solid #ff4444; padding:8px; margin-top:15px;">
+            ❗ Unauthorized use may lead to legal action.
+        </div>
+    </div>
+
+    <script>
+        // Background Matrix Rain
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height, columns, drops = [];
+        const chars = "01アイウエオカキクケコ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        function resizeCanvas() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width; canvas.height = height;
+            columns = Math.floor(width / 22);
+            drops = [];
+            for (let i = 0; i < columns; i++) drops[i] = Math.random() * -100;
+        }
+        function draw() {
+            ctx.fillStyle = 'rgba(0,0,0,0.05)';
+            ctx.fillRect(0,0,width,height);
+            ctx.fillStyle = '#ffcc44';
+            ctx.font = '18px monospace';
+            for (let i = 0; i < drops.length; i++) {
+                const text = chars[Math.floor(Math.random() * chars.length)];
+                ctx.fillText(text, i*22, drops[i]*22);
+                if (drops[i]*22 > height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            }
+            requestAnimationFrame(draw);
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        draw();
+
+        // Balloon logic
+        const balloon = document.getElementById('simBalloon');
+        const sidebar = document.getElementById('simSidebar');
+        const closeSidebar = document.getElementById('closeSidebarBtn');
+        function burstBalloon() {
+            const rect = balloon.getBoundingClientRect();
+            for (let i = 0; i < 40; i++) {
+                const p = document.createElement('div');
+                p.className = 'burst-particle';
+                p.style.left = rect.left + rect.width/2 + (Math.random()-0.5)*60 + 'px';
+                p.style.top = rect.top + rect.height/2 + (Math.random()-0.5)*60 + 'px';
+                p.style.setProperty('--tx', (Math.random()-0.5)*180 + 'px');
+                p.style.setProperty('--ty', (Math.random()-0.5)*150 - 80 + 'px');
+                document.body.appendChild(p);
+                setTimeout(() => p.remove(), 800);
+            }
+            balloon.style.display = 'none';
+            sidebar.classList.add('active');
+        }
+        balloon.addEventListener('click', burstBalloon);
+        closeSidebar.addEventListener('click', () => {
+            sidebar.classList.remove('active');
+            balloon.style.display = 'flex';
+        });
+        document.addEventListener('click', (e) => {
+            if (sidebar.classList.contains('active') && !sidebar.contains(e.target) && !balloon.contains(e.target)) {
+                sidebar.classList.remove('active');
+                balloon.style.display = 'flex';
+            }
+        });
+
+        // DOM elements
+        const simInput = document.getElementById('simInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const resultContainer = document.getElementById('resultContainer');
+        const errorMsgDiv = document.getElementById('errorMsg');
+        const totalUsersSpan = document.getElementById('totalUsers');
+        const totalChecksSpan = document.getElementById('totalChecks');
+
+        async function performSearch() {
+            const query = simInput.value.trim();
+            if (!query) {
+                showError("Please enter a phone number or CNIC.");
+                return;
+            }
+            if (!/^\d{10,13}$/.test(query)) {
+                showError("Invalid format. Use only 10-13 digits (phone) or 13 digits (CNIC).");
+                return;
+            }
+            showError(null);
+            resultContainer.style.display = 'none';
+            resultContainer.innerHTML = '';
+
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'glass-card';
+            loadingDiv.innerHTML = '<div style="text-align:center; padding:1rem;">🔍 Searching KHAN DATABASE ...</div>';
+            resultContainer.style.display = 'block';
+            resultContainer.appendChild(loadingDiv);
+
+            try {
+                const response = await fetch('/simdb', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: query })
+                });
+                const data = await response.json();
+                if (data.status === 'success' && data.result && data.result.length > 0) {
+                    displayResults(data.result);
+                    totalUsersSpan.innerText = data.total_users;
+                    totalChecksSpan.innerText = data.total_checks;
+                } else {
+                    resultContainer.innerHTML = `<div class="glass-card no-data">⚠️ ${data.error || 'No records found.'}</div>`;
+                }
+            } catch (err) {
+                showError("Network error. Please try again later.");
+                resultContainer.style.display = 'none';
+            }
+        }
+
+        function displayResults(records) {
+            resultContainer.style.display = 'block';
+            resultContainer.innerHTML = '';
+            records.forEach(rec => {
+                const name = rec.full_name || 'N/A';
+                const cnic = rec.cnic || 'N/A';
+                const phone = rec.phone || 'N/A';
+                const rawAddress = rec.address || 'N/A';
+                const formattedAddress = rawAddress.replace(/,/g, '<br>').replace(/;/g, '<br>');
+
+                const div = document.createElement('div');
+                div.className = 'result-item fade-in';
+                div.innerHTML = `
+                    <div class="result-field">
+                        <span class="field-label">📛 NAME</span>
+                        <span class="field-value">${escapeHtml(name)}</span>
+                    </div>
+                    <div class="result-field">
+                        <span class="field-label">🆔 CNIC</span>
+                        <span class="field-value cnic-value">${escapeHtml(cnic)}</span>
+                    </div>
+                    <div class="result-field">
+                        <span class="field-label">📞 PHONE</span>
+                        <span class="field-value">${escapeHtml(phone)}</span>
+                    </div>
+                    <div class="result-field">
+                        <span class="field-label">📍 ADDRESS</span>
+                        <div class="field-value address-value">${formattedAddress}</div>
+                    </div>
+                `;
+                resultContainer.appendChild(div);
+            });
+        }
+
+        function showError(msg) {
+            if (msg) {
+                errorMsgDiv.style.display = 'block';
+                errorMsgDiv.innerText = msg;
+                resultContainer.style.display = 'none';
+            } else {
+                errorMsgDiv.style.display = 'none';
+            }
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        searchBtn.addEventListener('click', performSearch);
+        simInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') performSearch(); });
+
+        async function updateStats() {
+            try {
+                const resp = await fetch('/api/simdb/stats');
+                const stats = await resp.json();
+                totalUsersSpan.innerText = stats.total_users;
+                totalChecksSpan.innerText = stats.total_checks;
+            } catch(e) { console.log(e); }
+        }
+        updateStats();
+        setInterval(updateStats, 30000);
+
+        // Modal on load (choose search mode)
+        window.addEventListener('load', function() {
+            const modalDiv = document.createElement('div');
+            modalDiv.className = 'modal-popup';
+            modalDiv.id = 'choiceModal';
+            modalDiv.innerHTML = `
+                <div class="modal-content">
+                    <span class="close-modal" id="closeModalBtn">&times;</span>
+                    <h2>🔍 Choose Search Mode</h2>
+                    <p style="margin-bottom: 15px;">What would you like to search?</p>
+                    <div class="modal-buttons">
+                        <button class="modal-btn" id="simSearchBtn">📞 SIM / Phone Number</button>
+                        <button class="modal-btn" id="cnicSearchBtn">🆔 CNIC (SIM List)</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modalDiv);
+            modalDiv.style.display = 'flex';
+
+            document.getElementById('closeModalBtn').onclick = () => modalDiv.style.display = 'none';
+            document.getElementById('simSearchBtn').onclick = () => modalDiv.style.display = 'none';
+            document.getElementById('cnicSearchBtn').onclick = () => window.location.href = '/cnic-search';
+        });
+        
+        // Apply saved settings from localStorage (theme, font, background)
+        (function() {
+            const settings = JSON.parse(localStorage.getItem('khanToolSettings') || '{}');
+            if (settings.fontStyle) document.body.style.fontFamily = settings.fontStyle;
+            if (settings.themeColor) {
+                document.documentElement.style.setProperty('--theme-color', settings.themeColor);
+                const style = document.createElement('style');
+                style.textContent = `
+                    .gold-border, .card, input, button, select, .settings-container, .glass-card { border-color: ${settings.themeColor} !important; }
+                    .gold-button, .search-btn, .mode-btn.active, .back-btn { background: ${settings.themeColor} !important; }
+                    h1, h2, h3, .gold-text, .field-label, .stat-number { color: ${settings.themeColor} !important; }
+                    body { background-color: ${settings.themeMode === 'light' ? '#f0f0f0' : 'black'} !important; color: ${settings.themeColor} !important; }
+                `;
+                document.head.appendChild(style);
+            }
+            const bgCanvas = document.getElementById('bg-canvas');
+            if (bgCanvas) bgCanvas.style.display = settings.bgEffects === false ? 'none' : 'block';
+            if (settings.themeMode === 'light') document.body.style.backgroundColor = '#f0f0f0';
+            else document.body.style.backgroundColor = 'black';
+        })();
+    </script>
+</body>
+</html>

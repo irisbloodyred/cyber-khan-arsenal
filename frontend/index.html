@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Khan Tool - Security Portal</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* WhatsApp button animation */
+        .whatsapp-btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: #25D366;
+            color: white;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            font-family: monospace;
+            animation: pulse 1.5s infinite;
+            transition: 0.3s;
+        }
+        .whatsapp-btn:hover {
+            transform: scale(1.05);
+            background: #0a65ec;
+            animation: none;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(37, 211, 102, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+        }
+
+        .hint {
+            font-size: 20px;
+            color: #ff0000;
+            margin-top: 10px;
+        }
+
+        /* Password Wrapper for alignment */
+        .pass-group {
+            display: inline-block;
+            text-align: left;
+            width: 100%;
+            max-width: 280px; /* Aapke input box ki width ke mutabiq */
+        }
+
+        .show-pass-label {
+            color: #0f0;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            margin-top: 5px;
+            font-family: monospace;
+            user-select: none;
+        }
+
+        .show-pass-label input {
+            margin-right: 8px;
+            cursor: pointer;
+            width: 14px;
+            height: 14px;
+        }
+
+        #pass {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body data-page="login">
+    <canvas id="bg-canvas"></canvas>
+    <audio id="bgMusic" src="images/password.mp3" loop></audio>
+    
+    <div id="musicControl" onclick="toggleMusic()">
+        <span id="musicIcon">🔇</span>
+    </div>
+
+    <img id="dove" src="images/Fly_dove.png" alt="flying dove">
+
+    <div class="center">
+        <h2 id="typing"></h2>
+        
+        <div class="pass-group">
+            <input type="password" id="pass" placeholder="ENTER ACCESS KEY">
+            <label class="show-pass-label">
+                <input type="checkbox" id="showPasswordCheckbox"> Show Password
+            </label>
+        </div>
+        
+        <br>
+        <button onclick="checkPass()" style="margin-top: 15px;">💀 GAIN ACCESS</button>
+
+        <div>
+            <a href="https://wa.me/923365467649?text=Hello%20Khan%2C%20I%20need%20the%20secret%20key%20for%20Khan%20Tool" 
+               target="_blank" class="whatsapp-btn">📱 REQUEST SECRET KEY ON WHATSAPP WITH KHAN</a>
+        </div>
+
+        <p class="hint">⚠️🛑 Access denied. Retrieve the Khan key before opening this tool. 🔐🔥</p>
+        <p id="error" style="margin-top: 10px; font-weight: bold;"></p>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Page Load logic
+        window.onload = () => { 
+            if (typeof typeText === "function") {
+                typeText("AUTHORIZED USERS ONLY..."); 
+            }
+
+            // Show/Hide Password Logic
+            const passField = document.getElementById("pass");
+            const showCheck = document.getElementById("showPasswordCheckbox");
+
+            showCheck.addEventListener('change', () => {
+                passField.type = showCheck.checked ? 'text' : 'password';
+            });
+        };
+
+        // Main Check Function
+        async function checkPass() {
+            const passBox = document.getElementById("pass");
+            const doveImg = document.getElementById("dove");
+            const errorMsg = document.getElementById("error");
+            const password = passBox.value.trim();
+
+            if (!password) {
+                errorMsg.innerHTML = "❌ Enter access key";
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/verify-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    if (doveImg) doveImg.classList.add("fly-animation");
+                    if (typeof typeText === "function") {
+                        typeText("ACCESS GRANTED... WELCOME COMMANDER KHAN.");
+                    }
+                    localStorage.setItem("musicStatus", "playing");
+                    setTimeout(() => { window.location.href = "home.html"; }, 5000);
+                } else {
+                    errorMsg.innerHTML = "❌ " + data.message;
+                    passBox.value = "";
+                }
+            } catch (err) {
+                errorMsg.innerHTML = "❌ Server error. Try again.";
+            }
+        }
+    </script>
+</body>
+</html>

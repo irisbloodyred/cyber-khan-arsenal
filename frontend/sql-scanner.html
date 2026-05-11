@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Injection Detector - Khan Tool</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: black;
+            color: #00ffcc;
+            font-family: monospace;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow-x: hidden;
+        }
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            background: black;
+        }
+        .container {
+            max-width: 1000px;
+            width: 90%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            border: 2px solid #00ffcc;
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 0 40px rgba(0,255,204,0.4);
+            z-index: 2;
+        }
+        h1 { text-align: center; margin-bottom: 10px; text-shadow: 0 0 5px #00ffcc; }
+        .sub { text-align: center; margin-bottom: 25px; font-size: 0.8rem; color: #88ffdd; }
+        .input-group { margin: 20px 0; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; }
+        input, textarea {
+            width: 100%;
+            padding: 14px;
+            background: #111;
+            border: 1px solid #00ffcc;
+            color: #00ffcc;
+            border-radius: 50px;
+            font-family: monospace;
+            font-size: 1rem;
+        }
+        textarea { border-radius: 20px; resize: vertical; }
+        button {
+            background: #00ffcc;
+            color: black;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: monospace;
+            margin-top: 10px;
+            transition: 0.2s;
+        }
+        button:hover { transform: scale(1.02); box-shadow: 0 0 20px #00ffcc; }
+        .output-box {
+            background: #0a0a0a;
+            border: 1px solid #00ffcc;
+            border-radius: 20px;
+            padding: 20px;
+            margin: 20px 0;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            margin-right: 10px;
+        }
+        .vuln { background: #ff3366; color: black; }
+        .safe { background: #00ffcc; color: black; }
+        a { color: #00ffcc; text-decoration: none; border: 1px solid #00ffcc; padding: 6px 18px; border-radius: 40px; display: inline-block; margin-top: 15px; }
+        hr { border-color: #00ffcc33; margin: 15px 0; }
+        .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid #fff; border-top-color: #00ffcc; border-radius: 50%; animation: spin 0.6s linear infinite; margin-left: 10px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Balloon + Sidebar */
+        .sql-balloon {
+            position: fixed;
+            right: 25px;
+            top: 120px;
+            cursor: pointer;
+            z-index: 100;
+            animation: balloonFloat 3s ease-in-out infinite;
+        }
+        .balloon-purple {
+            width: 110px;
+            height: 140px;
+            background: radial-gradient(circle at 30% 30%, #aa66ff, #6633cc);
+            border-radius: 50%;
+            box-shadow: 0 0 25px #aa66ff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-family: monospace;
+            font-size: 0.7rem;
+            text-align: center;
+            font-weight: bold;
+            position: relative;
+        }
+        .balloon-string {
+            position: absolute;
+            bottom: -35px;
+            left: 50%;
+            width: 2px;
+            height: 35px;
+            background: #8B4513;
+            transform: translateX(-50%);
+        }
+        .balloon-string::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: -3px;
+            width: 8px;
+            height: 8px;
+            background: #8B4513;
+            border-radius: 50%;
+        }
+        @keyframes balloonFloat {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        .burst-particle {
+            position: fixed;
+            width: 8px;
+            height: 8px;
+            background: #aa66ff;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            animation: flyAway 0.8s forwards;
+        }
+        @keyframes flyAway {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+        }
+        .sql-sidebar {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 420px;
+            height: 100vh;
+            background: linear-gradient(145deg, #1a0a2a, #2a1a3a);
+            border-left: 3px solid #aa66ff;
+            box-shadow: -5px 0 30px rgba(170,102,255,0.4);
+            transform: translateX(100%);
+            transition: transform 0.4s ease;
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 25px;
+            font-family: monospace;
+            color: #eeddff;
+        }
+        .sql-sidebar.active { transform: translateX(0); }
+        .sql-sidebar h3 { color: #aa66ff; border-bottom: 1px solid #aa66ff; margin-bottom: 20px; }
+        .sql-sidebar pre {
+            background: rgba(0,0,0,0.6);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            margin: 10px 0;
+        }
+        .close-sidebar {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: transparent;
+            border: none;
+            color: #aa66ff;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .close-sidebar:hover { color: red; }
+        @media (max-width: 700px) {
+            .sql-balloon { right: 10px; top: 80px; transform: scale(0.8); }
+            .sql-sidebar { width: 300px; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="bg-canvas"></canvas>
+    <div class="container">
+        <h1>💉 SQL INJECTION DETECTOR</h1>
+        <div class="sub">Real HTTP request scanner – detects SQLi vulnerabilities</div>
+
+        <div class="input-group">
+            <label>🎯 Target URL (with parameter):</label>
+            <input type="text" id="targetUrl" placeholder="e.g., http://test.com/page.php?id=1">
+        </div>
+        <div class="input-group">
+            <label>📝 Custom Payloads (one per line, optional):</label>
+            <textarea id="customPayloads" rows="3" placeholder="'&#10;' OR '1'='1&#10;' UNION SELECT NULL--"></textarea>
+        </div>
+        <button id="scanBtn">⚡ START SQLi SCAN</button>
+
+        <div class="output-box" id="output">
+            Ready. Enter a target URL and click scan.
+        </div>
+
+        <a href="home.html">⬅ BACK TO HOME</a>
+    </div>
+
+    <!-- Balloon -->
+    <div id="sqlBalloon" class="sql-balloon">
+        <div class="balloon-purple">
+            <div class="balloon-text">🎈<br>burst me<br>to learn SQLi</div>
+            <div class="balloon-string"></div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div id="sqlSidebar" class="sql-sidebar">
+        <button class="close-sidebar" id="closeSidebarBtn">✖</button>
+        <h3>📘 SQL INJECTION SCANNER GUIDE</h3>
+        <p>The tool injects SQL payloads into URL parameters and checks for database error messages.</p>
+        <h4>🔧 How to use:</h4>
+        <pre>
+1. Enter a URL containing a parameter (e.g., http://test.com/page?id=1)
+2. (Optional) Add custom payloads – one per line
+3. Click START SCAN
+4. Results show vulnerable payloads and detected error patterns
+        </pre>
+        <h4>⚠️ Legal & Ethical Use:</h4>
+        <pre>
+• ONLY scan websites you OWN or have WRITTEN PERMISSION.
+• Unauthorized scanning is ILLEGAL.
+• Educational purpose only.
+        </pre>
+        <h4>💡 Real SQLi Payloads:</h4>
+        <pre>
+' OR '1'='1
+' UNION SELECT NULL--
+' AND SLEEP(5)--
+        </pre>
+        <div class="warning" style="background:rgba(255,0,0,0.2); border-left:3px solid #ff4444; padding:8px; margin-top:15px;">
+            ⚠️ Misuse may lead to legal action. You are responsible for your actions.
+        </div>
+    </div>
+
+    <script>
+        // Background animation (same matrix+particles as before)
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height, particles = [], matrixDrops = [];
+        function resize() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+            initMatrix(); initParticles();
+        }
+        function initMatrix() {
+            const cols = Math.floor(width/25);
+            matrixDrops = [];
+            for(let i=0;i<cols;i++) matrixDrops[i] = Math.random() * -100;
+        }
+        function initParticles() {
+            particles = [];
+            for(let i=0;i<60;i++) {
+                particles.push({ x: Math.random()*width, y: Math.random()*height, r:2+Math.random()*4, vx:(Math.random()-0.5)*0.6, vy:(Math.random()-0.5)*0.6, alpha:0.4+Math.random()*0.5 });
+            }
+        }
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(0,0,0,0.05)';
+            ctx.fillRect(0,0,width,height);
+            ctx.fillStyle = '#0f0';
+            ctx.font = '18px monospace';
+            for(let i=0;i<matrixDrops.length;i++) {
+                const char = String.fromCharCode(0x30A0+Math.random()*96);
+                ctx.fillText(char, i*25, matrixDrops[i]*25);
+                if(matrixDrops[i]*25>height && Math.random()>0.975) matrixDrops[i]=0;
+                matrixDrops[i]++;
+            }
+            for(let p of particles) {
+                ctx.beginPath();
+                ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+                ctx.fillStyle = `rgba(0, 255, 200, ${p.alpha})`;
+                ctx.fill();
+                p.x += p.vx; p.y += p.vy;
+                if(p.x<0) p.x=width; if(p.x>width) p.x=0;
+                if(p.y<0) p.y=height; if(p.y>height) p.y=0;
+            }
+            requestAnimationFrame(drawMatrix);
+        }
+        window.addEventListener('resize',resize); resize(); drawMatrix();
+
+        // Balloon burst
+        const balloon = document.getElementById('sqlBalloon');
+        const sidebar = document.getElementById('sqlSidebar');
+        const closeSidebar = document.getElementById('closeSidebarBtn');
+        function burstBalloon() {
+            const rect = balloon.getBoundingClientRect();
+            for(let i=0;i<40;i++) {
+                const p = document.createElement('div');
+                p.className = 'burst-particle';
+                p.style.left = rect.left + rect.width/2 + (Math.random()-0.5)*60 + 'px';
+                p.style.top = rect.top + rect.height/2 + (Math.random()-0.5)*60 + 'px';
+                p.style.setProperty('--tx', (Math.random()-0.5)*180 + 'px');
+                p.style.setProperty('--ty', (Math.random()-0.5)*150 - 80 + 'px');
+                document.body.appendChild(p);
+                setTimeout(() => p.remove(), 800);
+            }
+            balloon.style.display = 'none';
+            sidebar.classList.add('active');
+        }
+        balloon.addEventListener('click', burstBalloon);
+        closeSidebar.addEventListener('click', () => {
+            sidebar.classList.remove('active');
+            balloon.style.display = 'flex';
+        });
+        document.addEventListener('click', (e) => {
+            if(sidebar.classList.contains('active') && !sidebar.contains(e.target) && !balloon.contains(e.target)) {
+                sidebar.classList.remove('active');
+                balloon.style.display = 'flex';
+            }
+        });
+
+        // SQLi scan
+        const scanBtn = document.getElementById('scanBtn');
+        const targetInput = document.getElementById('targetUrl');
+        const customArea = document.getElementById('customPayloads');
+        const outputDiv = document.getElementById('output');
+
+        scanBtn.onclick = async () => {
+            let url = targetInput.value.trim();
+            if(!url) {
+                outputDiv.innerHTML = "❌ Please enter a target URL.";
+                return;
+            }
+            let customText = customArea.value.trim();
+            let payloads = [];
+            if(customText) {
+                payloads = customText.split('\n').map(p => p.trim()).filter(p => p);
+            }
+            outputDiv.innerHTML = "🚀 Sending SQLi requests... <div class='spinner'></div>";
+            try {
+                const resp = await fetch('/api/sql-scan', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({url: url, payloads: payloads})
+                });
+                const data = await resp.json();
+                if(data.status !== 'success') {
+                    outputDiv.innerHTML = "❌ Error: " + (data.message || "Unknown");
+                    return;
+                }
+                let vulnerableCount = data.results.filter(r => r.vulnerable).length;
+                let html = `<span class="badge ${vulnerableCount>0 ? 'vuln' : 'safe'}">${vulnerableCount>0 ? 'VULNERABLE' : 'SAFE'}</span> Scan completed.<br><br>`;
+                html += `<strong>Target:</strong> ${data.target}<br>`;
+                html += `<strong>Payloads tested:</strong> ${data.results.length}<br>`;
+                html += `<strong>Vulnerable payloads:</strong> ${vulnerableCount}<br><br>`;
+                if(vulnerableCount > 0) {
+                    html += "<strong>⚠️ SQL injection vulnerabilities detected with these payloads:</strong><br>";
+                    data.results.forEach(r => {
+                        if(r.vulnerable) {
+                            html += `👉 ${r.payload}<br>`;
+                            if(r.errors && r.errors.length) {
+                                html += `   ↳ Error patterns: ${r.errors.join(', ')}<br>`;
+                            }
+                        }
+                    });
+                    html += "<br>✅ This means input is not sanitized and may allow database access.";
+                } else {
+                    html += "✅ No SQL injection vulnerability detected with tested payloads.<br>";
+                }
+                html += "<br><span style='color:#ffaa00'>⚠️ Only test on authorized systems. Unauthorized scanning is illegal.</span>";
+                outputDiv.innerHTML = html;
+            } catch(e) {
+                outputDiv.innerHTML = "❌ Network error: " + e.message;
+            }
+        };
+        
+    // Apply saved settings from localStorage (theme, font, background)
+    (function() {
+        const settings = JSON.parse(localStorage.getItem('khanToolSettings') || '{}');
+        
+        // Apply font family
+        if (settings.fontStyle) {
+            document.body.style.fontFamily = settings.fontStyle;
+        }
+        
+        // Apply theme color (set CSS variable)
+        if (settings.themeColor) {
+            document.documentElement.style.setProperty('--theme-color', settings.themeColor);
+            // Also update border colors and text colors if they use this variable
+            const style = document.createElement('style');
+            style.textContent = `
+                .gold-border, .card, input, button, select, .settings-container, .glass-card {
+                    border-color: ${settings.themeColor} !important;
+                }
+                .gold-button, .search-btn, .mode-btn.active, .back-btn {
+                    background: ${settings.themeColor} !important;
+                }
+                h1, h2, h3, .gold-text, .field-label, .stat-number {
+                    color: ${settings.themeColor} !important;
+                }
+                body {
+                    background-color: ${settings.themeMode === 'light' ? '#f0f0f0' : 'black'} !important;
+                    color: ${settings.themeColor} !important;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        // Toggle background effects (canvas visibility)
+        const bgCanvas = document.getElementById('bg-canvas');
+        if (bgCanvas) {
+            bgCanvas.style.display = settings.bgEffects === false ? 'none' : 'block';
+        }
+        
+        // Optional: apply dark/light mode body background
+        if (settings.themeMode === 'light') {
+            document.body.style.backgroundColor = '#f0f0f0';
+        } else {
+            document.body.style.backgroundColor = 'black';
+        }
+    })();
+
+    </script>
+</body>
+</html>

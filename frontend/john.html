@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>John the Ripper :: Real Hash Cracker</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0a0c0f;
+            font-family: 'Courier New', monospace;
+            padding: 2rem;
+            color: #ffaa00;
+            position: relative;
+            min-height: 100vh;
+        }
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            opacity: 0.35;
+            pointer-events: none;
+        }
+        .john-core {
+            max-width: 1300px;
+            margin: auto;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(4px);
+            border: 1px solid #ffaa00;
+            border-radius: 20px;
+            padding: 1rem;
+            position: relative;
+            z-index: 2;
+        }
+        .john-header {
+            border-bottom: 1px solid #ffaa00;
+            padding: 0.5rem 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+        }
+        .config-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px,1fr));
+            gap: 1rem;
+            padding: 1rem;
+        }
+        .input-row { display: flex; flex-direction: column; gap: 0.4rem; }
+        .input-row label { font-size: 0.7rem; color: #ffcc00; text-transform: uppercase; }
+        .input-row input {
+            background: #111;
+            border: 1px solid #ffaa00;
+            padding: 8px;
+            color: #ffcc00;
+            border-radius: 8px;
+            font-family: monospace;
+        }
+        .action-bar {
+            padding: 1rem;
+            display: flex;
+            gap: 1rem;
+            border-top: 1px solid #ffaa00;
+            border-bottom: 1px solid #ffaa00;
+            background: rgba(0,0,0,0.4);
+        }
+        button {
+            background: #ffaa00;
+            color: black;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        button.danger { background: #333; color: #ffaa00; border: 1px solid #ffaa00; }
+        .console-window {
+            background: #0a0a0a;
+            border: 1px solid #ffaa00;
+            border-radius: 12px;
+            min-height: 400px;
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 1rem;
+            font-size: 12px;
+            white-space: pre-wrap;
+            color: #ccff88;
+            font-family: monospace;
+        }
+        .status-led { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; }
+        .led { width: 10px; height: 10px; background: #5f5f3f; border-radius: 50%; }
+        .led.active { background: #3fcf3f; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { opacity: 0.5; } 100% { opacity: 1; } }
+        .upload-area {
+            background: #1a1f2a;
+            border: 2px dashed #ffaa00;
+            border-radius: 12px;
+            padding: 8px 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .upload-area:hover { border-color: #ffcc00; background: #2a2f3a; box-shadow: 0 0 8px #ffaa00; }
+        .upload-label { display: flex; align-items: center; justify-content: center; gap: 8px; color: #ffcc00; cursor: pointer; }
+        #hashFile { display: none; }
+        .upload-status { font-size: 0.65rem; color: #88ff88; margin-top: 5px; }
+        .john-balloon {
+            position: fixed;
+            right: 25px;
+            top: 120px;
+            cursor: pointer;
+            z-index: 100;
+            animation: balloonFloat 3s ease-in-out infinite;
+        }
+        .balloon-yellow {
+            width: 110px;
+            height: 140px;
+            background: radial-gradient(circle at 30% 30%, #ffaa00, #cc7700);
+            border-radius: 50%;
+            box-shadow: 0 0 25px #ffaa00;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #331a00;
+            font-family: monospace;
+            font-size: 0.7rem;
+            text-align: center;
+            font-weight: bold;
+            position: relative;
+        }
+        .balloon-yellow .balloon-text { padding: 10px; }
+        .balloon-string {
+            position: absolute;
+            bottom: -35px;
+            left: 50%;
+            width: 2px;
+            height: 35px;
+            background: #8B4513;
+            transform: translateX(-50%);
+        }
+        .balloon-string::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: -3px;
+            width: 8px;
+            height: 8px;
+            background: #8B4513;
+            border-radius: 50%;
+        }
+        @keyframes balloonFloat {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        .burst-particle {
+            position: fixed;
+            width: 8px;
+            height: 8px;
+            background: #ffaa00;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            animation: flyAway 0.8s forwards;
+        }
+        @keyframes flyAway {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+        }
+        .john-sidebar {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 420px;
+            height: 100vh;
+            background: linear-gradient(145deg, #1a1a0a, #2a2a1a);
+            border-left: 3px solid #ffaa00;
+            box-shadow: -5px 0 30px rgba(255,170,0,0.4);
+            transform: translateX(100%);
+            transition: transform 0.4s cubic-bezier(0.2,0.9,0.4,1.1);
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 25px;
+            font-family: monospace;
+            color: #ffcc88;
+        }
+        .john-sidebar.active { transform: translateX(0); }
+        .john-sidebar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(circle at 20% 30%, rgba(255,170,0,0.25) 2px, transparent 2px),
+                              radial-gradient(circle at 80% 70%, rgba(255,150,0,0.2) 1px, transparent 1px);
+            background-size: 50px 50px, 40px 40px;
+            animation: floatMolecules 20s linear infinite;
+            pointer-events: none;
+        }
+        @keyframes floatMolecules {
+            0% { background-position: 0 0, 0 0; }
+            100% { background-position: 100px 100px, 60px 60px; }
+        }
+        .john-sidebar h3, .john-sidebar h4, .john-sidebar p, .john-sidebar pre, .john-sidebar .warning {
+            position: relative;
+            z-index: 2;
+        }
+        .john-sidebar h3 { color: #ffaa00; border-bottom: 1px solid #ffaa00; padding-bottom: 10px; margin-bottom: 20px; }
+        .john-sidebar h4 { color: #ffcc66; margin: 15px 0 8px 0; }
+        .john-sidebar pre {
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            overflow-x: auto;
+            margin: 10px 0;
+            color: #ccffcc;
+        }
+        .john-sidebar .warning {
+            background: rgba(255,0,0,0.2);
+            border-left: 3px solid #ff4444;
+            padding: 8px;
+            margin-top: 15px;
+            color: #ffaaaa;
+            font-size: 0.7rem;
+        }
+        .close-sidebar {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: transparent;
+            border: none;
+            color: #ffaa00;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 3;
+        }
+        .close-sidebar:hover { color: red; }
+        @media (max-width: 700px) {
+            .john-balloon { right: 10px; top: 80px; transform: scale(0.8); }
+            .john-sidebar { width: 300px; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="bg-canvas"></canvas>
+    <div class="john-core">
+        <div class="john-header">
+            <h1>🔑 JOHN THE RIPPER (REAL)</h1>
+            <span style="color:#ffaa00;">Real Hash Cracking Engine</span>
+        </div>
+        <div class="config-panel">
+            <div class="input-row">
+                <label>📁 Hash File (upload or server path)</label>
+                <div class="upload-area" id="uploadArea">
+                    <label for="hashFile" class="upload-label"><span>📂</span> Click to upload hash file (.txt)</label>
+                    <input type="file" id="hashFile" accept=".txt,.hash">
+                    <div class="upload-status" id="uploadStatus"></div>
+                </div>
+                <input type="text" id="serverPath" placeholder="Or server path: /path/to/hash.txt" style="margin-top:8px;">
+            </div>
+            <div class="input-row"><label>🔢 Hash Type (optional)</label><input type="text" id="hashFormat" placeholder="auto / md5 / sha1 / nt"></div>
+            <div class="input-row"><label>📖 Wordlist (optional)</label><input type="text" id="wordlist" placeholder="/usr/share/wordlists/rockyou.txt"></div>
+        </div>
+        <div class="action-bar">
+            <button id="startBtn">⚡ START CRACKING</button>
+            <button id="clearBtn" class="danger">🗑️ CLEAR CONSOLE</button>
+            <div class="status-led"><span class="led idle" id="attackLed"></span><span id="statusText">idle</span></div>
+        </div>
+        <div class="console-window" id="consoleOutput"><pre>[*] Ready. Upload hash file or enter server path, then click START.</pre></div>
+    </div>
+
+    <!-- BALLOON -->
+    <div id="johnBalloon" class="john-balloon">
+        <div class="balloon-yellow">
+            <div class="balloon-text">🎈<br>burst me<br>to know John</div>
+            <div class="balloon-string"></div>
+        </div>
+    </div>
+
+    <!-- SIDEBAR (John Guide) -->
+    <div id="johnSidebar" class="john-sidebar">
+        <button class="close-sidebar" id="closeSidebar">✖</button>
+        <h3>📘 JOHN THE RIPPER GUIDE</h3>
+        <p>John is a fast password cracker, available for many OS.</p>
+        <h4>🔧 Basic Usage:</h4>
+        <pre>john hash.txt                      # auto-detect
+john --format=md5 hash.txt          # specify format
+john --wordlist=rockyou.txt hash.txt
+john --show hash.txt                # show cracked</pre>
+        <h4>📌 Real Examples:</h4>
+        <pre># Crack MD5 hash
+john --format=raw-md5 --wordlist=passwords.txt hash.txt
+
+# Crack NTLM hash
+john --format=nt hash.txt
+
+# Incremental brute force
+john --incremental hash.txt</pre>
+        <div class="warning">
+            ⚠️ ONLY AUTHORIZED USE!<br>
+            Cracking passwords without permission is ILLEGAL.<br>
+            Educational & authorized testing only.
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let w,h,cols,drops;
+        const chars = "01アイウ";
+        function resize() {
+            w = innerWidth; h = innerHeight;
+            canvas.width = w; canvas.height = h;
+            cols = Math.floor(w / 20);
+            drops = [];
+            for (let i = 0; i < cols; i++) drops[i] = Math.random() * -100;
+        }
+        function draw() {
+            ctx.fillStyle = 'rgba(0,0,0,0.05)';
+            ctx.fillRect(0, 0, w, h);
+            ctx.fillStyle = '#0f0';
+            ctx.font = '18px monospace';
+            for (let i = 0; i < drops.length; i++) {
+                ctx.fillText(chars[Math.floor(Math.random() * chars.length)], i * 20, drops[i] * 20);
+                if (drops[i] * 20 > h && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            }
+            requestAnimationFrame(draw);
+        }
+        window.addEventListener('resize', resize);
+        resize();
+        draw();
+
+        const balloon = document.getElementById('johnBalloon');
+        const sidebar = document.getElementById('johnSidebar');
+        function burstBalloon() {
+            const rect = balloon.getBoundingClientRect();
+            for (let i = 0; i < 40; i++) {
+                let p = document.createElement('div');
+                p.className = 'burst-particle';
+                p.style.left = rect.left + rect.width/2 + (Math.random() - 0.5) * 60 + 'px';
+                p.style.top = rect.top + rect.height/2 + (Math.random() - 0.5) * 60 + 'px';
+                p.style.setProperty('--tx', (Math.random() - 0.5) * 180 + 'px');
+                p.style.setProperty('--ty', (Math.random() - 0.5) * 150 - 80 + 'px');
+                document.body.appendChild(p);
+                setTimeout(() => p.remove(), 800);
+            }
+            balloon.style.display = 'none';
+            sidebar.classList.add('active');
+        }
+        balloon.addEventListener('click', (e) => { e.stopPropagation(); burstBalloon(); });
+        document.getElementById('closeSidebar').addEventListener('click', () => {
+            sidebar.classList.remove('active');
+            balloon.style.display = 'flex';
+        });
+        document.addEventListener('click', (e) => {
+            if (sidebar.classList.contains('active') && !sidebar.contains(e.target) && !balloon.contains(e.target)) {
+                sidebar.classList.remove('active');
+                balloon.style.display = 'flex';
+            }
+        });
+
+        const fileInput = document.getElementById('hashFile');
+        const uploadStatus = document.getElementById('uploadStatus');
+        const serverPathInput = document.getElementById('serverPath');
+        async function uploadFile(file) {
+            let fd = new FormData();
+            fd.append('file', file);
+            uploadStatus.innerHTML = '⏳ Uploading...';
+            try {
+                let res = await fetch('/api/upload-hash', { method: 'POST', body: fd });
+                let data = await res.json();
+                if (data.status === 'success') {
+                    serverPathInput.value = data.path;
+                    uploadStatus.innerHTML = `✅ Uploaded: ${file.name}`;
+                } else throw new Error(data.message);
+            } catch (e) { uploadStatus.innerHTML = `❌ Upload failed: ${e.message}`; }
+        }
+        fileInput.addEventListener('change', (e) => { if (e.target.files.length) uploadFile(e.target.files[0]); });
+
+        const startBtn = document.getElementById('startBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const outputDiv = document.getElementById('consoleOutput');
+        const attackLed = document.getElementById('attackLed');
+        const statusSpan = document.getElementById('statusText');
+        let isRunning = false;
+
+        function appendOutput(text, isErr = false) {
+            let pre = document.createElement('pre');
+            pre.style.margin = '0';
+            pre.style.whiteSpace = 'pre-wrap';
+            pre.style.color = isErr ? '#ff8888' : '#88ff88';
+            pre.innerText = text;
+            outputDiv.appendChild(pre);
+            outputDiv.scrollTop = outputDiv.scrollHeight;
+        }
+
+        async function startJohn() {
+            if (isRunning) { appendOutput('[!] Cracking already running', true); return; }
+            let hashfile = serverPathInput.value.trim();
+            let format = document.getElementById('hashFormat').value.trim();
+            let wordlist = document.getElementById('wordlist').value.trim();
+            if (!hashfile) {
+                appendOutput('[!] Hash file path required (upload or server path)', true);
+                return;
+            }
+            appendOutput(`[>] Calling John: hash=${hashfile} format=${format || 'auto'} wordlist=${wordlist || 'default'}`);
+            attackLed.className = 'led active';
+            statusSpan.innerText = 'cracking';
+            isRunning = true;
+            try {
+                let response = await fetch('/api/run-john', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ hashfile, format: format || 'auto', wordlist })
+                });
+                let data = await response.json();
+                if (data.status === 'success') {
+                    appendOutput(data.output);
+                } else {
+                    appendOutput(`❌ John error: ${data.message}`, true);
+                }
+            } catch (err) {
+                appendOutput(`❌ Network error: ${err.message}`, true);
+            } finally {
+                attackLed.className = 'led idle';
+                statusSpan.innerText = 'idle';
+                isRunning = false;
+            }
+        }
+        startBtn.onclick = startJohn;
+        clearBtn.onclick = () => { outputDiv.innerHTML = '<pre>[>] Console cleared.</pre>'; };
+        
+    // Apply saved settings from localStorage (theme, font, background)
+    (function() {
+        const settings = JSON.parse(localStorage.getItem('khanToolSettings') || '{}');
+        
+        // Apply font family
+        if (settings.fontStyle) {
+            document.body.style.fontFamily = settings.fontStyle;
+        }
+        
+        // Apply theme color (set CSS variable)
+        if (settings.themeColor) {
+            document.documentElement.style.setProperty('--theme-color', settings.themeColor);
+            // Also update border colors and text colors if they use this variable
+            const style = document.createElement('style');
+            style.textContent = `
+                .gold-border, .card, input, button, select, .settings-container, .glass-card {
+                    border-color: ${settings.themeColor} !important;
+                }
+                .gold-button, .search-btn, .mode-btn.active, .back-btn {
+                    background: ${settings.themeColor} !important;
+                }
+                h1, h2, h3, .gold-text, .field-label, .stat-number {
+                    color: ${settings.themeColor} !important;
+                }
+                body {
+                    background-color: ${settings.themeMode === 'light' ? '#f0f0f0' : 'black'} !important;
+                    color: ${settings.themeColor} !important;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        // Toggle background effects (canvas visibility)
+        const bgCanvas = document.getElementById('bg-canvas');
+        if (bgCanvas) {
+            bgCanvas.style.display = settings.bgEffects === false ? 'none' : 'block';
+        }
+        
+        // Optional: apply dark/light mode body background
+        if (settings.themeMode === 'light') {
+            document.body.style.backgroundColor = '#f0f0f0';
+        } else {
+            document.body.style.backgroundColor = 'black';
+        }
+    })();
+
+    </script>
+</body>
+</html>

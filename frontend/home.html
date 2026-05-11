@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>Khan Tool - Red Team Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        html, body {
+            height: 100%;
+            overflow-x: hidden;
+            width: 100%;
+            position: relative;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            background: black;
+            position: relative;
+            min-height: 100vh;
+            overflow-x: hidden;
+            cursor: none;
+        }
+
+        /* Spider Web Background */
+        #spider-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+            background: radial-gradient(circle at center, #0a0a0a 0%, #000000 100%);
+        }
+
+        #loving-spider {
+            position: fixed;
+            width: 50px;
+            height: 50px;
+            pointer-events: none;
+            z-index: 9999;
+            filter: drop-shadow(0 0 8px #ff6600);
+            transition: all 0.08s linear;
+            font-size: 40px;
+            text-align: center;
+            line-height: 50px;
+        }
+
+        .heart-particle {
+            position: fixed;
+            font-size: 16px;
+            pointer-events: none;
+            z-index: 9998;
+            animation: heartFloat 1s ease-out forwards;
+        }
+
+        @keyframes heartFloat {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-50px) scale(1.5); opacity: 0; }
+        }
+
+        .web-thread {
+            position: fixed;
+            width: 2px;
+            background: linear-gradient(180deg, rgba(255,102,0,0.6), transparent);
+            pointer-events: none;
+            z-index: 9997;
+            animation: threadFade 0.6s ease-out forwards;
+        }
+
+        @keyframes threadFade {
+            0% { opacity: 0.8; height: 0; }
+            100% { opacity: 0; height: 80px; }
+        }
+
+        .web-particle {
+            position: fixed;
+            width: 3px;
+            height: 3px;
+            background: radial-gradient(circle, #ff6600, transparent);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9996;
+            animation: particleFloat 6s linear infinite;
+        }
+
+        @keyframes particleFloat {
+            0% { transform: translateY(100vh) translateX(0); opacity: 0; }
+            20% { opacity: 0.6; }
+            80% { opacity: 0.6; }
+            100% { transform: translateY(-100vh) translateX(30px); opacity: 0; }
+        }
+
+        .leg-trail {
+            position: fixed;
+            width: 4px;
+            height: 4px;
+            background: #ff6600;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9995;
+            animation: trailFade 0.3s ease-out forwards;
+        }
+
+        @keyframes trailFade {
+            0% { opacity: 0.8; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0); }
+        }
+
+        /* ========== NAVBAR STYLES ========== */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(145deg, #0a0f1f 0%, #0a1a2a 100%);
+            position: relative;
+            overflow: hidden;
+            padding: 12px 25px;
+            border-bottom: 3px solid #ff6600;
+            border-top: 1px solid rgba(255,102,0,0.3);
+            box-shadow: 0 0 25px rgba(255,102,0,0.6);
+            width: 100%;
+            z-index: 10;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .navbar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,102,0,0.2), transparent);
+            animation: navbarShine 8s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+        @keyframes navbarShine {
+            0% { left: -100%; }
+            50% { left: 100%; }
+            100% { left: 100%; }
+        }
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 2;
+            background: rgba(0,0,0,0.4);
+            padding: 5px 15px;
+            border-radius: 50px;
+            backdrop-filter: blur(5px);
+        }
+        .logo-img {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            border: 2px solid #ff6600;
+            object-fit: cover;
+            box-shadow: 0 0 12px #ff6600;
+            transition: 0.3s;
+        }
+        .logo-img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px #ff6600;
+        }
+        .logo-text {
+            font-family: monospace;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #ff6600;
+            text-shadow: 0 0 5px #ff6600;
+            letter-spacing: 1px;
+        }
+        .logo-text small {
+            font-size: 0.7rem;
+            color: #ffaa00;
+            display: block;
+        }
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            z-index: 2;
+            flex-wrap: wrap;
+        }
+        .nav-btn {
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255,102,0,0.5);
+            color: #ffaa00;
+            font-family: monospace;
+            font-size: 0.85rem;
+            font-weight: bold;
+            cursor: pointer;
+            padding: 8px 16px;
+            transition: all 0.3s ease;
+            border-radius: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        .nav-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,102,0,0.3), transparent);
+            transition: left 0.5s;
+        }
+        .nav-btn:hover::before {
+            left: 100%;
+        }
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            color: #fff;
+            text-shadow: 0 0 8px #ff6600;
+            background: rgba(255,102,0,0.2);
+            border-color: #ff6600;
+            box-shadow: 0 0 15px rgba(255,102,0,0.4);
+        }
+        #customMusicBtn {
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            border: 1px solid #ff6600;
+            border-radius: 50%;
+            width: 38px;
+            height: 38px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            color: #ff6600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s;
+        }
+        #customMusicBtn:hover {
+            background: #ff6600;
+            color: black;
+            transform: scale(1.1);
+            box-shadow: 0 0 20px #ff6600;
+        }
+        .scan-box {
+            position: absolute;
+            top: 0;
+            left: -20%;
+            width: 20%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0,255,255,0.2), transparent);
+            transform: skewX(-20deg);
+            animation: scanMove 6s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+        @keyframes scanMove {
+            0% { left: -20%; opacity: 0; }
+            50% { left: 100%; opacity: 1; }
+            100% { left: 120%; opacity: 0; }
+        }
+
+        /* Sidebars */
+        .sidebar-panel {
+            position: fixed; top: 0; left: 0; width: 280px; height: 100vh;
+            background: linear-gradient(145deg, #0a0f1f 0%, #0a1a2a 100%);
+            border-right: 2px solid #ff6600; padding: 30px 20px;
+            transform: translateX(-100%); transition: transform 0.4s ease; z-index: 1000; overflow-y: auto;
+        }
+        .sidebar-panel.active { transform: translateX(0); }
+        .sidebar-panel h3 { color: #ff6600; font-size: 1.4rem; border-bottom: 1px solid #ff6600; padding-bottom: 10px; margin-bottom: 20px; text-align: center; }
+        .sidebar-panel h4 { color: #ffaa00; margin-bottom: 12px; }
+        .sidebar-btn {
+            display: block; background: rgba(0,0,0,0.6); border: 1px solid #ff6600; color: #ffaa00;
+            width: 100%; padding: 12px; margin: 10px 0; border-radius: 12px; text-align: center;
+            cursor: pointer; transition: 0.2s;
+        }
+        .sidebar-btn:hover { background: #ff6600; color: black; box-shadow: 0 0 15px #ff6600; }
+
+        .menu-sidebar {
+            position: fixed; top: 0; right: 0; width: 320px; height: 100vh;
+            background: linear-gradient(145deg, #0a0f1f, #0a1a2a);
+            border-left: 3px solid #00ccff;
+            transform: translateX(100%); transition: transform 0.4s ease; z-index: 1001; overflow-y: auto; padding: 25px;
+        }
+        .menu-sidebar.active { transform: translateX(0); }
+        .menu-sidebar h3 { color: #00ccff; border-bottom: 2px solid #00ccff; padding-bottom: 12px; margin-bottom: 20px; text-align: center; }
+        .menu-sidebar button {
+            display: block; width: 100%; background: rgba(0,0,0,0.7); border: 1px solid #00ccff;
+            color: #00ccff; padding: 14px; margin: 12px 0; border-radius: 50px; cursor: pointer;
+            text-align: left; padding-left: 20px;
+        }
+        .menu-sidebar button:hover { transform: translateX(8px); background: #00ccff; color: black; }
+        .close-menu-btn { position: absolute; top: 15px; right: 20px; background: transparent; border: none; color: #00ccff; font-size: 26px; cursor: pointer; }
+
+        /* Footer */
+        .footer {
+            width: 100%; margin-top: auto; padding: 20px; text-align: center;
+            background: linear-gradient(145deg, #0a0f1f 0%, #0a1a2a 100%);
+            border-top: 2px solid #ff00cc; border-bottom: 2px solid #ff00cc;
+            font-family: monospace; font-size: 0.9rem;
+            position: relative;
+            z-index: 10;
+        }
+        .footer p { margin: 6px 0; color: #ffffff; }
+        .footer .highlight { color: #ffff00; }
+
+        /* Main Container */
+        .main-container { display: flex; width: 100%; max-width: 1400px; margin: 30px auto; gap: 20px; z-index: 2; position: relative; flex: 1; padding: 0 15px; }
+        .left-side { width: 280px; flex-shrink: 0; }
+        .balloon-wrapper { position: fixed; top: 130px; left: 10px; cursor: pointer; z-index: 20; }
+        .balloon { position: relative; width: 130px; height: 180px; background: radial-gradient(circle at 30% 30%, #ff3366, #cc0033); border-radius: 50%; box-shadow: 0 0 25px rgba(255,51,102,0.7); animation: floatBalloon 3s ease-in-out infinite; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; font-family: monospace; font-weight: bold; font-size: 1rem; text-align: center; }
+        @keyframes floatBalloon { 0% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-12px) rotate(2deg); } 100% { transform: translateY(0px) rotate(0deg); } }
+        .content-area { flex: 1; text-align: center; }
+        .hero { margin: 20px auto; padding: 25px; background: rgba(0,0,0,0.6); border-radius: 28px; border: 1px solid #ff6600; box-shadow: 0 0 25px rgba(255,102,0,0.4); width: 100%; max-width: 850px; }
+        .hero h1 { font-size: 2.2rem; text-shadow: 0 0 8px #ff6600; }
+        .hero p { color: #ccc; font-size: 1rem; }
+        
+        .big-buttons { display: flex; justify-content: center; gap: 40px; margin: 50px 0; flex-wrap: wrap; }
+        .big-btn { width: 240px; padding: 20px; font-size: 1.8rem; font-weight: bold; background: rgba(0,0,0,0.8); border: 2px solid #ff6600; border-radius: 70px; color: #ff6600; cursor: pointer; transition: 0.3s; text-transform: uppercase; }
+        .big-btn:hover { background: #ff6600; color: black; box-shadow: 0 0 45px #ff6600; transform: scale(1.05); }
+        
+        .tools-buttons-container { display: none; margin-top: 40px; justify-content: center; gap: 25px; flex-wrap: wrap; width: 100%; }
+        .tool-btn { background: #111; border: 2px solid #ff6600; border-radius: 25px; padding: 15px 25px; font-size: 1.2rem; font-weight: bold; color: #ff6600; cursor: pointer; transition: 0.2s; min-width: 150px; opacity: 0; transform: translateY(20px); animation: fadeInUp 0.4s forwards; }
+        .tool-btn:hover { background: #ff6600; color: black; transform: translateY(-5px); }
+        @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+
+        /* Email Only OTP Modal */
+        .twofa-modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            backdrop-filter: blur(8px);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-card {
+            background: linear-gradient(145deg, #0d0f1a, #1a1f2f);
+            border: 2px solid #ff6600;
+            border-radius: 30px;
+            padding: 35px;
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 0 50px rgba(255,102,0,0.3);
+            animation: modalGlow 2s infinite;
+        }
+        @keyframes modalGlow {
+            0% { box-shadow: 0 0 20px rgba(255,102,0,0.2); }
+            50% { box-shadow: 0 0 40px rgba(255,102,0,0.5); }
+            100% { box-shadow: 0 0 20px rgba(255,102,0,0.2); }
+        }
+        .close-modal {
+            float: right;
+            font-size: 28px;
+            cursor: pointer;
+            color: #ff6600;
+            transition: 0.2s;
+        }
+        .close-modal:hover { color: red; transform: scale(1.2); }
+        .modal-card h2 {
+            color: #ff6600;
+            margin-bottom: 20px;
+            font-family: monospace;
+        }
+        .auth-section { margin-top: 20px; padding: 20px; border-top: 1px solid #ff6600; }
+        .auth-section input { width: 90%; padding: 12px; margin: 10px 0; background: #0a0a0a; border: 1px solid #ff6600; border-radius: 25px; color: white; text-align: center; }
+        .auth-section button { background: #ff6600; color: black; border: none; padding: 12px 25px; margin: 10px; border-radius: 30px; cursor: pointer; font-weight: bold; }
+        .status-msg { margin-top: 15px; font-size: 14px; color: #ffaa00; }
+
+        @media (max-width: 800px) {
+            .navbar { padding: 10px 15px; gap: 10px; }
+            .logo-img { width: 45px; height: 45px; }
+            .logo-text { font-size: 0.8rem; }
+            .nav-btn { padding: 5px 12px; font-size: 0.7rem; }
+            .big-btn { width: 180px; font-size: 1.3rem; }
+            .hero h1 { font-size: 1.6rem; }
+        }
+        @media (max-width: 600px) {
+            .navbar { padding: 8px 12px; }
+            .logo-img { width: 38px; height: 38px; }
+            .logo-text { font-size: 0.7rem; }
+            .nav-btn { padding: 4px 8px; font-size: 0.65rem; }
+            #customMusicBtn { width: 32px; height: 32px; font-size: 0.9rem; }
+            .big-btn { width: 140px; font-size: 1.1rem; padding: 12px; }
+            .hero h1 { font-size: 1.2rem; }
+            .balloon-wrapper { display: none; }
+            .left-side { display: none; }
+        }
+    </style>
+</head>
+<body data-page="home">
+    <canvas id="spider-canvas"></canvas>
+    <div id="loving-spider">🕷️❤️</div>
+    <audio id="bgMusic" loop><source src="images/song.mp3" type="audio/mpeg"></audio>
+
+    <!-- ========== NAVBAR ========== -->
+    <div class="navbar">
+        <div class="scan-box"></div>
+        <div class="logo-area">
+            <img class="logo-img" src="/images/khan_logo1.png" alt="logo" onerror="this.onerror=null; this.style.display='none';">
+            <div class="logo-text">KHAN HACKER<br><small>⚡ Red Teaming Zone</small></div>
+        </div>
+        <div class="nav-buttons">
+            <button class="nav-btn" id="disclaimerBtn">⚠️ DISCLAIMER</button>
+            <button class="nav-btn" id="settingsBtn">⚙️ SETTINGS</button>
+            <button class="nav-btn" id="menuBtn">☰ MENU</button>
+            <button id="customMusicBtn" title="Music On/Off">🎵</button>
+        </div>
+    </div>
+
+    <!-- ========== MAIN CONTENT ========== -->
+    <div class="main-container">
+        <div class="left-side">
+            <div id="balloonWrapper" class="balloon-wrapper">
+                <div class="balloon" id="balloon">
+                    <div class="balloon-text">🎈<br>KHAN<br>TOOLS</div>
+                    <div class="balloon-string"></div>
+                </div>
+            </div>
+        </div>
+        <div class="content-area">
+            <div class="hero">
+                <h1>🔴 RED TEAM TOOLKIT v2.0 🔴</h1>
+                <p>Educational Red Team Toolkit | Authorized Testing Only</p>
+            </div>
+            
+            <div class="big-buttons">
+                <button class="big-btn" id="attackMainBtn">⚔️ ATTACK</button>
+                <button class="big-btn" id="toolsMainBtn">🛠️ TOOLS</button>
+            </div>
+
+            <div id="toolsButtonsPanel" class="tools-buttons-container">
+                <button class="tool-btn" onclick="location.href='password-checker.html'">🔐 Password Checker</button>
+                <button class="tool-btn" onclick="location.href='sql-scanner.html'">💉 SQL Scanner</button>
+                <button class="tool-btn" onclick="location.href='/simdb'">📇 SIM DATABASE</button>
+                <button class="tool-btn" onclick="location.href='reverse-shell-web.html'">🔥 Reverse Shell</button>
+                <button class="tool-btn" onclick="location.href='xss-scanner.html'">⚠️ XSS Scanner</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== LEFT SIDEBAR (BALLOON) ========== -->
+    <div id="sidebarPanel" class="sidebar-panel">
+        <h3>⚡ ATTACK MENU</h3>
+        <div class="sidebar-section">
+            <h4>🔴 ATTACK TOOLS</h4>
+            <button class="sidebar-btn" id="sidebarHydraBtn">🐉 Hydra Brute Force</button>
+            <button class="sidebar-btn" id="sidebarJohnBtn">🔑 John the Ripper</button>
+            <button class="sidebar-btn" id="sidebarNmapBtn">📡 Nmap Scanner</button>
+            <button class="sidebar-btn" id="sidebarWifiBtn">📶 WiFi Tools</button>
+            <button class="sidebar-btn" id="sidebarReverseBtn">🐍 Reverse Shell</button>
+        </div>
+    </div>
+
+    <!-- ========== RIGHT SIDEBAR (MENU) ========== -->
+    <div id="menuSidebar" class="menu-sidebar">
+        <button class="close-menu-btn" id="closeMenuSidebar">✖</button>
+        <h3>📁 UTILITY TOOLS</h3>
+        <button onclick="location.href='password-checker.html'">🔐 Password Strength Checker</button>
+        <button onclick="location.href='sql-scanner.html'">💉 SQL Injection Detector</button>
+        <button onclick="location.href='/simdb'">📇 PAK SIM DATABASE</button>
+        <button onclick="location.href='reverse-shell-web.html'">🔥 Reverse Shell Web Tool</button>
+        <button onclick="location.href='xss-scanner.html'">⚠️ XSS Scanner</button>
+        <button onclick="location.href='wifi-tool'">📡 WiFi Security Tool</button>
+    </div>
+
+    <!-- ========== FOOTER ========== -->
+    <div class="footer">
+        <p>🛡️ <span class="highlight">Bano Qabil Cybersecurity Lab</span> | 👨‍💻 Rehan Khan | Student ID: 1271527 🎓</p>
+        <p>📧 rehantanoli8609@gmail.com | 🔐 Cybersecurity Enthusiast | ⚡ Ethical Hacking Only</p>
+        <p>⚠️ Educational Purpose Only | Unauthorized use is illegal 🚫</p>
+    </div>
+
+    <!-- ========== EMAIL ONLY OTP MODAL ========== -->
+    <div id="twofaModal" class="twofa-modal">
+        <div class="modal-card">
+            <span class="close-modal" id="closeModal">&times;</span>
+            <h2>🔐 EMAIL VERIFICATION REQUIRED</h2>
+            <p>Verify your identity to access attack tools</p>
+            
+            <!-- Email OTP Section Only -->
+            <div id="emailSection" class="auth-section">
+                <input type="email" id="emailInput" placeholder="Enter your email address">
+                <button id="sendOtpBtn">📧 Send OTP</button>
+                <div id="otpDiv" style="display:none;">
+                    <input type="text" id="otpInput" placeholder="Enter 6-digit OTP">
+                    <button id="verifyOtpBtn">✅ Verify & Unlock</button>
+                </div>
+            </div>
+            
+            <div id="statusMsg" class="status-msg"></div>
+        </div>
+    </div>
+
+    <script>
+        // ========== SPIDER ANIMATION ==========
+        const spider = document.getElementById('loving-spider');
+        let spiderX = window.innerWidth / 2;
+        let spiderY = window.innerHeight / 2;
+        let targetX = spiderX;
+        let targetY = spiderY;
+        let lastX = spiderX, lastY = spiderY;
+        
+        document.addEventListener('mousemove', (e) => {
+            targetX = e.clientX;
+            targetY = e.clientY;
+            if (Math.random() < 0.05) createHeart(targetX, targetY);
+            createLegTrail(targetX, targetY);
+        });
+        
+        function animateSpider() {
+            const dx = targetX - spiderX;
+            const dy = targetY - spiderY;
+            const distance = Math.hypot(dx, dy);
+            const speed = Math.min(15, Math.max(3, distance / 10));
+            if (distance > 1) {
+                spiderX += dx / speed;
+                spiderY += dy / speed;
+            } else {
+                spiderX = targetX;
+                spiderY = targetY;
+            }
+            spider.style.left = (spiderX - 25) + 'px';
+            spider.style.top = (spiderY - 25) + 'px';
+            const moveDist = Math.hypot(spiderX - lastX, spiderY - lastY);
+            if (moveDist > 5) {
+                const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                spider.style.transform = `rotate(${angle}deg)`;
+            } else {
+                spider.style.transform = `rotate(0deg)`;
+            }
+            if (distance < 10 && Math.random() < 0.1) {
+                createHeart(spiderX, spiderY);
+                spider.style.transform = `scale(1.2)`;
+                setTimeout(() => { if(spider) spider.style.transform = `rotate(${parseInt(spider.style.transform)||0}deg) scale(1)`; }, 200);
+            }
+            lastX = spiderX;
+            lastY = spiderY;
+            requestAnimationFrame(animateSpider);
+        }
+        
+        function createHeart(x, y) {
+            const heart = document.createElement('div');
+            heart.className = 'heart-particle';
+            heart.innerHTML = ['❤️','💖','💗','💓','❤️‍🔥','🕷️❤️'][Math.floor(Math.random()*6)];
+            heart.style.left = (x - 10) + 'px';
+            heart.style.top = (y - 10) + 'px';
+            document.body.appendChild(heart);
+            setTimeout(() => heart.remove(), 1000);
+        }
+        
+        function createLegTrail(x, y) {
+            const trail = document.createElement('div');
+            trail.className = 'leg-trail';
+            trail.style.left = (x - 2) + 'px';
+            trail.style.top = (y - 2) + 'px';
+            document.body.appendChild(trail);
+            setTimeout(() => trail.remove(), 300);
+        }
+        
+        function createWebThread() {
+            const thread = document.createElement('div');
+            thread.className = 'web-thread';
+            thread.style.left = spiderX + 'px';
+            thread.style.top = spiderY + 'px';
+            document.body.appendChild(thread);
+            setTimeout(() => thread.remove(), 600);
+        }
+        
+        setInterval(() => { if(Math.random() < 0.3) createWebThread(); }, 500);
+        
+        function createWebParticles() {
+            for(let i=0; i<40; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'web-particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDuration = (Math.random() * 10 + 5) + 's';
+                particle.style.animationDelay = (Math.random() * 10) + 's';
+                document.body.appendChild(particle);
+            }
+        }
+        
+        setTimeout(() => animateSpider(), 100);
+        createWebParticles();
+        
+        // ========== SPIDER WEB CANVAS ==========
+        const canvas = document.getElementById('spider-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        
+        function resizeCanvas() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+            drawWeb();
+        }
+        
+        function drawWeb() {
+            if(!ctx) return;
+            ctx.clearRect(0, 0, width, height);
+            const centerX = width/2, centerY = height/2, maxRadius = Math.min(width,height)*0.45;
+            ctx.beginPath();
+            ctx.strokeStyle = 'rgba(255,102,0,0.12)';
+            ctx.lineWidth = 1.5;
+            for(let angle=0; angle<Math.PI*2; angle+=Math.PI/12) {
+                const x = centerX + Math.cos(angle)*maxRadius;
+                const y = centerY + Math.sin(angle)*maxRadius;
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.lineTo(x, y);
+                ctx.stroke();
+            }
+            for(let r=1; r<=5; r++) {
+                const radius = maxRadius * r/5;
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, 0, Math.PI*2);
+                ctx.stroke();
+            }
+            ctx.fillStyle = 'rgba(255,102,0,0.3)';
+            ctx.font = '30px Arial';
+            ctx.fillText('❤️', centerX-15, centerY+10);
+        }
+        
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        
+        let pulseTime=0;
+        function animateWebPulse() {
+            if(ctx) {
+                drawWeb();
+                const centerX = width/2, centerY = height/2;
+                const pulse = Math.sin(pulseTime)*0.3+0.3;
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, 8+pulse*5, 0, Math.PI*2);
+                ctx.fillStyle = `rgba(255,102,0,${0.2+pulse*0.2})`;
+                ctx.fill();
+                pulseTime += 0.05;
+            }
+            requestAnimationFrame(animateWebPulse);
+        }
+        animateWebPulse();
+
+        // ========== EMAIL ONLY OTP MODAL LOGIC ==========
+        const modal = document.getElementById('twofaModal');
+        const closeModal = document.getElementById('closeModal');
+        const attackBtn = document.getElementById('attackMainBtn');
+        const sendOtpBtn = document.getElementById('sendOtpBtn');
+        const verifyOtpBtn = document.getElementById('verifyOtpBtn');
+        const emailInput = document.getElementById('emailInput');
+        const otpInput = document.getElementById('otpInput');
+        const otpDiv = document.getElementById('otpDiv');
+        const statusMsg = document.getElementById('statusMsg');
+        
+        let currentEmail = '';
+        let targetUrl = '/attack-select';
+        
+        function showModal(url) {
+            targetUrl = url || '/attack-select';
+            modal.style.display = 'flex';
+            statusMsg.innerHTML = '';
+            otpDiv.style.display = 'none';
+            emailInput.value = '';
+            otpInput.value = '';
+        }
+        
+        if(attackBtn) attackBtn.onclick = () => showModal('/attack-select');
+        if(closeModal) closeModal.onclick = () => modal.style.display = 'none';
+        window.onclick = (e) => { if(e.target === modal) modal.style.display = 'none'; };
+        
+        // Send Email OTP
+        if(sendOtpBtn) {
+            sendOtpBtn.onclick = async () => {
+                const email = emailInput.value.trim();
+                if(!email) { statusMsg.innerHTML = '❌ Enter email address'; return; }
+                currentEmail = email;
+                statusMsg.innerHTML = '⏳ Sending OTP...';
+                try {
+                    const res = await fetch('/api/send-otp', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: email })
+                    });
+                    const data = await res.json();
+                    if(data.status === 'success') {
+                        statusMsg.innerHTML = '✅ OTP sent to email! Check your inbox';
+                        otpDiv.style.display = 'block';
+                    } else {
+                        statusMsg.innerHTML = '❌ ' + data.message;
+                    }
+                } catch(e) { statusMsg.innerHTML = '❌ Server error'; }
+            };
+        }
+        
+        // Verify Email OTP
+        if(verifyOtpBtn) {
+            verifyOtpBtn.onclick = async () => {
+                const otp = otpInput.value.trim();
+                if(!otp) { statusMsg.innerHTML = '❌ Enter OTP'; return; }
+                statusMsg.innerHTML = '⏳ Verifying...';
+                try {
+                    const res = await fetch('/api/verify-otp', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: currentEmail, otp: otp })
+                    });
+                    const data = await res.json();
+                    if(data.status === 'success') {
+                        statusMsg.innerHTML = '✅ Verified! Redirecting to attack panel...';
+                        setTimeout(() => {
+                            modal.style.display = 'none';
+                            window.location.href = targetUrl;
+                        }, 1000);
+                    } else {
+                        statusMsg.innerHTML = '❌ ' + data.message;
+                    }
+                } catch(e) { statusMsg.innerHTML = '❌ Error'; }
+            };
+        }
+        
+        // Sidebar buttons
+        const sidebarHydra = document.getElementById('sidebarHydraBtn');
+        const sidebarJohn = document.getElementById('sidebarJohnBtn');
+        const sidebarNmap = document.getElementById('sidebarNmapBtn');
+        const sidebarWifi = document.getElementById('sidebarWifiBtn');
+        const sidebarReverse = document.getElementById('sidebarReverseBtn');
+        
+        if(sidebarHydra) sidebarHydra.onclick = () => showModal('/hydra');
+        if(sidebarJohn) sidebarJohn.onclick = () => showModal('/john');
+        if(sidebarNmap) sidebarNmap.onclick = () => showModal('/nmap');
+        if(sidebarWifi) sidebarWifi.onclick = () => showModal('/wifi-tool');
+        if(sidebarReverse) sidebarReverse.onclick = () => showModal('/reverse-shell-web.html');
+        
+        // Tools button
+        const toolsMainBtn = document.getElementById('toolsMainBtn');
+        const toolsPanel = document.getElementById('toolsButtonsPanel');
+        if(toolsMainBtn && toolsPanel) {
+            toolsMainBtn.onclick = () => {
+                toolsPanel.style.display = toolsPanel.style.display === 'flex' ? 'none' : 'flex';
+            };
+        }
+        
+        // Balloon sidebar
+        const balloonWrapper = document.getElementById('balloonWrapper');
+        const sidebarPanel = document.getElementById('sidebarPanel');
+        if(balloonWrapper && sidebarPanel) {
+            balloonWrapper.onclick = (e) => {
+                e.stopPropagation();
+                balloonWrapper.style.display = 'none';
+                sidebarPanel.classList.add('active');
+            };
+            document.addEventListener('click', (e) => {
+                if(sidebarPanel.classList.contains('active') && !sidebarPanel.contains(e.target) && !balloonWrapper.contains(e.target)) {
+                    sidebarPanel.classList.remove('active');
+                    balloonWrapper.style.display = 'flex';
+                }
+            });
+        }
+        
+        // Menu sidebar
+        const menuBtn = document.getElementById('menuBtn');
+        const menuSidebar = document.getElementById('menuSidebar');
+        const closeMenuBtn = document.getElementById('closeMenuSidebar');
+        if(menuBtn && menuSidebar) {
+            menuBtn.onclick = (e) => { e.stopPropagation(); menuSidebar.classList.toggle('active'); };
+            closeMenuBtn.onclick = () => { menuSidebar.classList.remove('active'); };
+            document.addEventListener('click', (e) => {
+                if(menuSidebar.classList.contains('active') && !menuSidebar.contains(e.target) && e.target !== menuBtn) {
+                    menuSidebar.classList.remove('active');
+                }
+            });
+        }
+        
+        // Disclaimer and Settings
+        const disclaimerBtn = document.getElementById('disclaimerBtn');
+        const settingsBtn = document.getElementById('settingsBtn');
+        if(disclaimerBtn) disclaimerBtn.onclick = () => window.location.href = '/disclaimer';
+        if(settingsBtn) settingsBtn.onclick = () => window.location.href = '/settings';
+        
+        // Music control
+        const music = document.getElementById('bgMusic');
+        const musicBtn = document.getElementById('customMusicBtn');
+        let musicPlaying = false;
+        if(musicBtn && music) {
+            musicBtn.onclick = () => {
+                if(musicPlaying) {
+                    music.pause();
+                    musicBtn.innerHTML = '🔇';
+                    musicPlaying = false;
+                } else {
+                    music.play();
+                    musicBtn.innerHTML = '🎵';
+                    musicPlaying = true;
+                }
+            };
+        }
+        
+        // Settings
+        function applySavedSettings() {
+            const settings = JSON.parse(localStorage.getItem('khanToolSettings') || '{}');
+            if(settings.themeColor) {
+                const color = settings.themeColor;
+                let style = document.getElementById('dynamic-theme-style');
+                if(!style) { style = document.createElement('style'); style.id = 'dynamic-theme-style'; document.head.appendChild(style); }
+                style.textContent = `
+                    .big-btn, .tool-btn, .sidebar-btn, .nav-btn, .hero, .footer, .sidebar-panel, .modal-card {
+                        border-color: ${color} !important; color: ${color} !important;
+                    }
+                    .big-btn:hover, .tool-btn:hover, .sidebar-btn:hover, .nav-btn:hover, #sendOtpBtn, #verifyOtpBtn {
+                        background: ${color} !important; color: black !important;
+                    }
+                `;
+            }
+            if(settings.fontStyle) document.body.style.fontFamily = settings.fontStyle;
+            if(settings.bgEffects === false) { const canvasEl = document.getElementById('spider-canvas'); if(canvasEl) canvasEl.style.display = 'none'; }
+            if(settings.bgMusicToggle === false) { const musicEl = document.getElementById('bgMusic'); if(musicEl) musicEl.pause(); }
+        }
+        
+        window.addEventListener('load', () => {
+            applySavedSettings();
+        });
+    </script>
+</body>
+</html>

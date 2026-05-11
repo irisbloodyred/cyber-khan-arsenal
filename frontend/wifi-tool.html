@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Advanced WiFi Tool - Khan Tool</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { 
+            background: black; 
+            color: #00ffcc; 
+            font-family: 'Courier New', monospace; 
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        #bg-canvas { position: fixed; top:0; left:0; width:100%; height:100%; z-index:-2; background: black; }
+        
+        .container { 
+            max-width: 1100px; 
+            width: 95%; 
+            margin: 20px auto;
+            background: rgba(0,0,0,0.85); 
+            backdrop-filter: blur(10px); 
+            border: 2px solid #00ffcc; 
+            border-radius: 30px; 
+            padding: 30px; 
+            box-shadow: 0 0 40px rgba(0,255,204,0.4); 
+            z-index:2; 
+        }
+        
+        h1 { text-align:center; margin-bottom:10px; text-shadow:0 0 5px #00ffcc; font-size: 1.8rem; }
+        h2 { color: #00ffcc; margin: 15px 0 10px 0; border-bottom: 1px solid #00ffcc44; padding-bottom: 5px; }
+        
+        .mode-buttons { 
+            display: flex; 
+            gap: 10px; 
+            margin: 20px 0; 
+            justify-content:center;
+            flex-wrap: wrap;
+        }
+        .mode-btn { 
+            background:#111; 
+            border:1px solid #00ffcc; 
+            padding:10px 16px; 
+            border-radius:30px; 
+            cursor:pointer; 
+            transition:0.2s; 
+            color:#00ffcc;
+            font-family: monospace;
+            font-size: 0.85rem;
+        }
+        .mode-btn.active { 
+            background:#00ffcc; 
+            color:black; 
+            box-shadow:0 0 15px #00ffcc;
+        }
+        .mode-btn:hover { border-color: #fff; }
+        
+        .mode-panel { display: none; animation: fadeIn 0.3s ease; }
+        .mode-panel.active { display: block; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .output { 
+            background:#0a0a0a; 
+            border:1px solid #00ffcc; 
+            border-radius:15px; 
+            padding:15px; 
+            margin-top:15px; 
+            white-space:pre-wrap; 
+            font-size:13px; 
+            max-height:400px; 
+            overflow-y:auto; 
+            line-height: 1.6;
+        }
+        
+        .scan-btn, .action-btn { 
+            background:#00ffcc; 
+            color:black; 
+            border:none; 
+            padding:12px 24px; 
+            border-radius:30px; 
+            cursor:pointer; 
+            font-weight:bold; 
+            margin:10px auto; 
+            display:inline-block; 
+            transition:0.2s;
+            font-family: monospace;
+            font-size: 1rem;
+        }
+        .scan-btn:hover, .action-btn:hover { 
+            transform:scale(1.03); 
+            box-shadow:0 0 20px #00ffcc; 
+        }
+        
+        .show-pwd-btn {
+            background: linear-gradient(45deg, #ff3366, #ff6600);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(255,51,102,0.5);
+            animation: glowPulse 1.5s infinite alternate;
+            margin: 15px auto;
+            display: block;
+            width: 90%;
+            max-width: 350px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-family: monospace;
+        }
+        .show-pwd-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(255,102,0,0.8);
+            background: linear-gradient(45deg, #ff6600, #ff3366);
+        }
+        @keyframes glowPulse {
+            0% { box-shadow: 0 0 5px #ff3366, 0 0 10px #ff6600; }
+            100% { box-shadow: 0 0 20px #ff3366, 0 0 30px #ff6600; }
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .stat-card {
+            background: #0d0d0d;
+            border: 1px solid #00ffcc44;
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+        }
+        .stat-card .label { font-size: 0.7rem; color: #888; text-transform: uppercase; }
+        .stat-card .value { font-size: 1.2rem; color: #00ffcc; font-weight: bold; margin-top: 5px; }
+        
+        .device-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 0.8rem;
+        }
+        .device-table th {
+            background: #00ffcc22;
+            color: #00ffcc;
+            padding: 10px 8px;
+            text-align: left;
+            border-bottom: 2px solid #00ffcc;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+        }
+        .device-table td {
+            padding: 8px;
+            border-bottom: 1px solid #00ffcc22;
+        }
+        .device-table tr:hover { background: #00ffcc11; }
+        
+        .camera-badge {
+            display: inline-block;
+            background: #ff3366;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.65rem;
+            font-weight: bold;
+        }
+        .camera-high { background: #ff0000; }
+        .camera-med { background: #ff6600; }
+        
+        .gateway-badge {
+            display: inline-block;
+            background: #3366ff;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.65rem;
+        }
+        
+        .port-list {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+        .port-tag {
+            background: #222;
+            border: 1px solid #00ffcc44;
+            border-radius: 4px;
+            padding: 1px 5px;
+            font-size: 0.65rem;
+            color: #aaa;
+        }
+        .port-tag.open { color: #0f0; border-color: #0f0; }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #00ffcc44;
+            border-top: 3px solid #00ffcc;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 15px 0;
+        }
+        
+        .terminal-header {
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 10px 10px 0 0;
+            padding: 8px 15px;
+            margin-top: 15px;
+            color: #888;
+            font-size: 0.75rem;
+        }
+        .terminal-body {
+            background: #050505;
+            border: 1px solid #333;
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+            padding: 15px;
+            font-size: 0.75rem;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            color: #0f0;
+        }
+        .terminal-body .info { color: #0af; }
+        .terminal-body .success { color: #0f0; }
+        .terminal-body .error { color: #f33; }
+        .terminal-body .warn { color: #ff0; }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px 20px;
+            font-size: 0.85rem;
+        }
+        .info-grid .key { color: #888; }
+        .info-grid .val { color: #00ffcc; }
+        
+        a.back-link { 
+            color:#00ffcc; 
+            text-decoration:none; 
+            border:1px solid #00ffcc; 
+            padding:8px 22px; 
+            border-radius:40px; 
+            display:inline-block; 
+            margin-top:25px; 
+            transition:0.2s;
+            font-size: 0.85rem;
+        }
+        a.back-link:hover { 
+            background:#00ffcc; 
+            color:black; 
+            box-shadow:0 0 15px #00ffcc; 
+        }
+
+        .signal-bars {
+            display: inline-block;
+            width: 20px;
+            vertical-align: middle;
+        }
+        .signal-bars span {
+            display: inline-block;
+            width: 3px;
+            background: #00ffcc;
+            margin-right: 2px;
+            border-radius: 2px;
+        }
+        
+        /* Terminal typing effect */
+        .typing::after {
+            content: '▌';
+            animation: blink 1s step-end infinite;
+        }
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+
+        /* Copy button */
+        .copy-btn {
+            background: transparent;
+            border: 1px solid #ffaa00;
+            color: #ffaa00;
+            padding: 4px 12px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            font-family: monospace;
+            transition: 0.2s;
+            margin-left: 10px;
+        }
+        .copy-btn:hover {
+            background: #ffaa00;
+            color: black;
+        }
+        
+        @media (max-width: 600px) {
+            .container { padding: 15px; width: 98%; }
+            .mode-btn { font-size: 0.7rem; padding: 8px 12px; }
+            .device-table { font-size: 0.65rem; }
+            .info-grid { grid-template-columns: 1fr; }
+            h1 { font-size: 1.2rem; }
+            .show-pwd-btn { font-size: 0.9rem; padding: 12px 20px; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="bg-canvas"></canvas>
+    <div class="container">
+        <h1>📡 ADVANCED WIFI TOOL</h1>
+        <p style="text-align:center; color:#888; font-size:0.8rem; margin-bottom:10px;">
+            Password Recovery | Device Scanner | Camera Detector | Network Info | Deep Scan
+        </p>
+        
+        <div class="mode-buttons">
+            <button class="mode-btn active" data-mode="password">🔑 Password</button>
+            <button class="mode-btn" data-mode="devices">📱 Devices</button>
+            <button class="mode-btn" data-mode="cameras">📷 Cameras</button>
+            <button class="mode-btn" data-mode="network">🌐 Network Info</button>
+            <button class="mode-btn" data-mode="deepscan">🔍 Deep Scan</button>
+        </div>
+
+        <!-- ==================== PANEL 1: PASSWORD ==================== -->
+        <div id="panelPassword" class="mode-panel active">
+            <h2>🔑 Connected WiFi Password</h2>
+            <p style="color:#888;">Get password and full details of your current WiFi network</p>
+            <button id="showPwdBtn" class="show-pwd-btn">✨ SHOW MY PASSWORD ✨</button>
+            <div id="passwordOutput" class="output"></div>
+            <div id="passwordTerminal" class="terminal-body" style="display:none; margin-top:10px;"></div>
+        </div>
+
+        <!-- ==================== PANEL 2: DEVICES ==================== -->
+        <div id="panelDevices" class="mode-panel">
+            <h2>📱 Network Devices</h2>
+            <p style="color:#888;">Scan all devices connected to your network with detailed information</p>
+            <div class="btn-group">
+                <button id="scanDevicesBtn" class="scan-btn">🔍 SCAN ALL DEVICES</button>
+            </div>
+            <div id="devicesStats" class="stats-grid"></div>
+            <div id="devicesTableContainer"></div>
+            <div id="devicesTerminal" class="terminal-body" style="display:none; margin-top:10px;"></div>
+        </div>
+
+        <!-- ==================== PANEL 3: CAMERAS ==================== -->
+        <div id="panelCameras" class="mode-panel">
+            <h2>📷 Camera Detector</h2>
+            <p style="color:#888;">Detect IP cameras, CCTV, and surveillance devices on your network</p>
+            <div class="btn-group">
+                <button id="findCamerasBtn" class="scan-btn" style="background: #ff3366;">📷 FIND CAMERAS</button>
+            </div>
+            <div id="camerasOutput" class="output"></div>
+            <div id="camerasList"></div>
+            <div id="camerasTerminal" class="terminal-body" style="display:none; margin-top:10px;"></div>
+        </div>
+
+        <!-- ==================== PANEL 4: NETWORK INFO ==================== -->
+        <div id="panelNetwork" class="mode-panel">
+            <h2>🌐 Network Information</h2>
+            <p style="color:#888;">Complete network configuration details</p>
+            <button id="getNetInfoBtn" class="scan-btn">🌐 GET NETWORK INFO</button>
+            <div id="networkOutput" class="output"></div>
+        </div>
+
+        <!-- ==================== PANEL 5: DEEP SCAN ==================== -->
+        <div id="panelDeepScan" class="mode-panel">
+            <h2>🔍 Deep Device Scan</h2>
+            <p style="color:#888;">Enter an IP address to get OS fingerprinting and detailed port scan</p>
+            <div style="display:flex; gap:10px; margin:15px 0; flex-wrap:wrap;">
+                <input type="text" id="deepScanIp" placeholder="e.g. 192.168.1.100" 
+                       style="flex:1; min-width:200px; padding:12px 18px; background:#111; border:1px solid #00ffcc; 
+                              border-radius:30px; color:#00ffcc; font-family:monospace; font-size:1rem;">
+                <button id="deepScanBtn" class="scan-btn">🔍 SCAN</button>
+            </div>
+            <div id="deepScanOutput" class="output"></div>
+            <div id="deepScanTerminal" class="terminal-body" style="display:none; margin-top:10px;"></div>
+        </div>
+
+        <div style="text-align:center;">
+            <a href="home.html" class="back-link">⬅ BACK TO HOME</a>
+        </div>
+    </div>
+
+    <script>
+        // ===================== BACKGROUND ANIMATION =====================
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height, drops = [], particles = [];
+        
+        function resize() {
+            width = window.innerWidth; height = window.innerHeight;
+            canvas.width = width; canvas.height = height;
+            initMatrix(); initParticles();
+        }
+        function initMatrix() {
+            drops = [];
+            const cols = Math.floor(width/22);
+            for(let i=0; i<cols; i++) drops[i] = Math.random() * -100;
+        }
+        function initParticles() {
+            particles = [];
+            for(let i=0; i<50; i++) {
+                particles.push({
+                    x: Math.random()*width, y: Math.random()*height,
+                    r: 1.5+Math.random()*3,
+                    vx: (Math.random()-0.5)*0.5, vy: (Math.random()-0.5)*0.5,
+                    alpha: 0.3+Math.random()*0.5
+                });
+            }
+        }
+        function animate() {
+            ctx.fillStyle = 'rgba(0,0,0,0.06)';
+            ctx.fillRect(0,0,width,height);
+            
+            // Matrix rain
+            ctx.fillStyle = '#0a0';
+            ctx.font = '16px monospace';
+            for(let i=0; i<drops.length; i++) {
+                const char = String.fromCharCode(0x30A0 + Math.floor(Math.random()*96));
+                if(Math.random() > 0.95) ctx.fillStyle = '#0f0';
+                else ctx.fillStyle = '#0a0';
+                ctx.fillText(char, i*22, drops[i]*22);
+                if(drops[i]*22 > height && Math.random()>0.975) drops[i]=0;
+                drops[i]++;
+            }
+            
+            // Particles
+            for(let p of particles) {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+                ctx.fillStyle = `rgba(0,255,200,${p.alpha})`;
+                ctx.fill();
+                p.x += p.vx; p.y += p.vy;
+                if(p.x<0) p.x=width; if(p.x>width) p.x=0;
+                if(p.y<0) p.y=height; if(p.y>height) p.y=0;
+            }
+            requestAnimationFrame(animate);
+        }
+        window.addEventListener('resize', resize);
+        resize(); animate();
+
+        // ===================== MODE SWITCHING =====================
+        const modeBtns = document.querySelectorAll('.mode-btn');
+        const panels = {
+            password: document.getElementById('panelPassword'),
+            devices: document.getElementById('panelDevices'),
+            cameras: document.getElementById('panelCameras'),
+            network: document.getElementById('panelNetwork'),
+            deepscan: document.getElementById('panelDeepScan')
+        };
+        
+        modeBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const mode = btn.dataset.mode;
+                modeBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                Object.values(panels).forEach(p => p.classList.remove('active'));
+                if(panels[mode]) panels[mode].classList.add('active');
+            });
+        });
+
+        // ===================== HELPER: Copy to clipboard =====================
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                // Visual feedback
+            }).catch(err => {});
+        }
+
+        function addCopyButton(text, container) {
+            const btn = document.createElement('button');
+            btn.className = 'copy-btn';
+            btn.textContent = '📋 COPY';
+            btn.onclick = () => copyToClipboard(text);
+            container.appendChild(btn);
+        }
+
+        // ===================== PANEL 1: PASSWORD =====================
+        document.getElementById('showPwdBtn').onclick = async () => {
+            const out = document.getElementById('passwordOutput');
+            const term = document.getElementById('passwordTerminal');
+            term.style.display = 'block';
+            term.innerHTML = '<span class="info">[*] Initializing WiFi scan...</span>\n';
+            
+            out.innerHTML = '<span class="loading"></span> Fetching WiFi password...';
+            term.innerHTML += '<span class="info">[*] Querying nmcli for active connection...</span>\n';
+            
+            try {
+                const res = await fetch('/api/wifi/connected-password');
+                term.innerHTML += '<span class="info">[*] Processing response...</span>\n';
+                const data = await res.json();
+                
+                if(data.status === 'success') {
+                    const d = data.data;
+                    term.innerHTML += `<span class="success">[✓] Found SSID: ${d.ssid}</span>\n`;
+                    term.innerHTML += `<span class="success">[✓] Password retrieved successfully!</span>\n`;
+                    
+                    let html = `
+                        <div style="text-align:center; margin-bottom:15px;">
+                            <span style="font-size:2rem;">📶</span>
+                        </div>
+                        <div class="info-grid">
+                            <div><span class="key">SSID (Network Name):</span> <span class="val">${d.ssid}</span></div>
+                            <div><span class="key">Password:</span> <span class="val" style="color:#ffaa00; font-size:1.3rem; font-weight:bold;">
+                                ${d.password || 'Not found'}
+                                ${d.password ? `<button class="copy-btn" onclick="navigator.clipboard.writeText('${d.password}')">📋 COPY</button>` : ''}
+                            </span></div>
+                            <div><span class="key">Security Type:</span> <span class="val">${d.security || 'N/A'}</span></div>
+                            <div><span class="key">Signal Strength:</span> <span class="val">${d.signal || 'N/A'}%</span></div>
+                            <div><span class="key">Frequency:</span> <span class="val">${d.frequency || 'N/A'} GHz</span></div>
+                            <div><span class="key">Channel:</span> <span class="val">${d.channel || 'N/A'}</span></div>
+                            <div><span class="key">Your IP:</span> <span class="val">${d.ip || 'N/A'}</span></div>
+                            <div><span class="key">Gateway:</span> <span class="val">${d.gateway || 'N/A'}</span></div>
+                            <div><span class="key">Interface:</span> <span class="val">${d.interface || 'N/A'}</span></div>
+                        </div>
+                    `;
+                    out.innerHTML = html;
+                    term.innerHTML += '<span class="success">[✓] Done. All information displayed above.</span>\n';
+                } else {
+                    out.innerHTML = `❌ ${data.message}`;
+                    term.innerHTML += `<span class="error">[!] Error: ${data.message}</span>\n`;
+                }
+            } catch(e) { 
+                out.innerHTML = 'Error: ' + e.message;
+                term.innerHTML += `<span class="error">[!] Network error: ${e.message}</span>\n`;
+            }
+        };
+
+        // ===================== PANEL 2: DEVICES =====================
+        document.getElementById('scanDevicesBtn').onclick = async () => {
+            const statsDiv = document.getElementById('devicesStats');
+            const tableDiv = document.getElementById('devicesTableContainer');
+            const term = document.getElementById('devicesTerminal');
+            term.style.display = 'block';
+            
+            statsDiv.innerHTML = '<div style="text-align:center; padding:20px;"><span class="loading"></span> Scanning network...</div>';
+            tableDiv.innerHTML = '';
+            term.innerHTML = '<span class="info">[*] Initiating ARP scan on local network...</span>\n';
+            
+            try {
+                const res = await fetch('/api/wifi/devices');
+                term.innerHTML += '<span class="info">[*] Waiting for response...</span>\n';
+                const data = await res.json();
+                
+                if(data.status === 'success') {
+                    const net = data.network;
+                    const devices = data.devices;
+                    
+                    term.innerHTML += `<span class="success">[✓] Scan complete. Found ${devices.length} devices.</span>\n`;
+                    
+                    // Stats cards
+                    const camCount = devices.filter(d => d.is_camera).length;
+                    const gwCount = devices.filter(d => d.is_gateway).length;
+                    
+                    statsDiv.innerHTML = `
+                        <div class="stat-card">
+                            <div class="label">Total Devices</div>
+                            <div class="value">${devices.length}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="label">Cameras</div>
+                            <div class="value" style="color:${camCount > 0 ? '#ff3366' : '#888'}">${camCount}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="label">Network Range</div>
+                            <div class="value" style="font-size:0.8rem;">${net.range}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="label">Gateway</div>
+                            <div class="value" style="font-size:0.9rem; color:#3366ff;">${net.gateway || 'N/A'}</div>
+                        </div>
+                    `;
+                    
+                    // Device table
+                    let html = `<table class="device-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>IP Address</th>
+                                <th>Hostname</th>
+                                <th>MAC Address</th>
+                                <th>Vendor</th>
+                                <th>Type</th>
+                                <th>Ports</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+                    
+                    devices.forEach((dev, idx) => {
+                        const camBadge = dev.is_camera ? '<span class="camera-badge camera-high">📷 CAMERA</span>' : '';
+                        const gwBadge = dev.is_gateway ? '<span class="gateway-badge">🌐 GATEWAY</span>' : '';
+                        const typeLabel = camBadge || gwBadge || '<span style="color:#888;">Device</span>';
+                        
+                        const portsHtml = (dev.camera_ports_open && dev.camera_ports_open.length > 0) 
+                            ? dev.camera_ports_open.map(p => `<span class="port-tag open">${p}</span>`).join('')
+                            : '<span style="color:#555;">-</span>';
+                        
+                        html += `<tr>
+                            <td>${idx + 1}</td>
+                            <td style="color:#0af;">${dev.ip}</td>
+                            <td>${dev.hostname || 'Unknown'}</td>
+                            <td style="font-size:0.7rem;">${dev.mac}</td>
+                            <td style="font-size:0.7rem;">${dev.vendor || 'Unknown'}</td>
+                            <td>${typeLabel}</td>
+                            <td><div class="port-list">${portsHtml}</div></td>
+                        </tr>`;
+                    });
+                    
+                    html += '</tbody></table>';
+                    
+                    // Summary
+                    html += `<div style="margin-top:15px; padding:10px; background:#0a0a0a; border-radius:10px; font-size:0.75rem; color:#888;">
+                        <strong>Network:</strong> ${net.range} | 
+                        <strong>Gateway:</strong> ${net.gateway} | 
+                        <strong>Interface:</strong> ${net.interface} | 
+                        <strong>Your IP:</strong> ${net.my_ip}
+                    </div>`;
+                    
+                    tableDiv.innerHTML = html;
+                    term.innerHTML += '<span class="success">[✓] All data displayed in table above.</span>\n';
+                    
+                } else {
+                    statsDiv.innerHTML = `<div class="output">❌ ${data.message}</div>`;
+                    term.innerHTML += `<span class="error">[!] Error: ${data.message}</span>\n`;
+                }
+            } catch(e) {
+                statsDiv.innerHTML = `<div class="output">Error: ${e.message}</div>`;
+                term.innerHTML += `<span class="error">[!] Network error: ${e.message}</span>\n`;
+            }
+        };
+
+        // ===================== PANEL 3: CAMERAS =====================
+        document.getElementById('findCamerasBtn').onclick = async () => {
+            const out = document.getElementById('camerasOutput');
+            const listDiv = document.getElementById('camerasList');
+            const term = document.getElementById('camerasTerminal');
+            term.style.display = 'block';
+            
+            out.innerHTML = '<span class="loading"></span> Scanning for cameras... This may take a moment.';
+            listDiv.innerHTML = '';
+            term.innerHTML = '<span class="info">[*] Starting camera detection scan...</span>\n';
+            term.innerHTML += '<span class="info">[*] Checking for IP cameras on common ports (80, 554, 37777, 34567, 8899...)</span>\n';
+            
+            try {
+                const res = await fetch('/api/wifi/find-cameras');
+                term.innerHTML += '<span class="info">[*] Processing camera detection results...</span>\n';
+                const data = await res.json();
+                
+                if(data.status === 'success') {
+                    const cams = data.cameras_found;
+                    const total = data.total_cameras;
+                    
+                    term.innerHTML += `<span class="${total > 0 ? 'warn' : 'info'}">[*] Found ${total} camera(s) on network</span>\n`;
+                    
+                    if(total === 0) {
+                        out.innerHTML = '✅ No cameras detected on your network.';
+                        listDiv.innerHTML = '';
+                        return;
+                    }
+                    
+                    out.innerHTML = `📷 <strong>${total} camera(s)</strong> found on ${data.network_range}`;
+                    
+                    let html = '';
+                    cams.forEach((cam, idx) => {
+                        const confidenceClass = cam.confidence === 'HIGH' ? 'camera-high' : 'camera-med';
+                        const confidenceIcon = cam.confidence === 'HIGH' ? '🔴' : '🟠';
+                        
+                        html += `
+                        <div style="background:#0d0d0d; border:1px solid #ff336688; border-radius:15px; padding:15px; margin:10px 0;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
+                                <div>
+                                    <span style="font-size:1.5rem;">📷</span>
+                                    <strong style="color:#ff3366; font-size:1.1rem;"> Camera ${idx + 1}</strong>
+                                </div>
+                                <span class="camera-badge ${confidenceClass}">${confidenceIcon} ${cam.confidence} CONFIDENCE</span>
+                            </div>
+                            <div class="info-grid" style="margin-top:10px;">
+                                <div><span class="key">IP Address:</span> <span class="val">${cam.ip}</span></div>
+                                <div><span class="key">MAC Address:</span> <span class="val">${cam.mac}</span></div>
+                                <div><span class="key">Hostname:</span> <span class="val">${cam.hostname}</span></div>
+                                <div><span class="key">Vendor:</span> <span class="val">${cam.vendor}</span></div>
+                                <div><span class="key">Open Ports:</span> <span class="val">
+                                    <div class="port-list">
+                                        ${cam.all_open_ports.map(p => `<span class="port-tag open">${p}</span>`).join('')}
+                                    </div>
+                                </span></div>
+                            </div>
+                            ${cam.http_info && cam.http_info.page_title ? 
+                                `<div style="margin-top:8px; color:#888; font-size:0.75rem;">🌐 HTTP Title: ${cam.http_info.page_title}</div>` : ''}
+                            <div style="margin-top:8px; font-size:0.7rem; color:#555;">
+                                <strong>Detected Services:</strong> ${Object.keys(cam.open_ports).join(', ')}
+                            </div>
+                        </div>`;
+                    });
+                    
+                    listDiv.innerHTML = html;
+                    term.innerHTML += '<span class="success">[✓] Camera detection complete.</span>\n';
+                    
+                } else {
+                    out.innerHTML = `❌ ${data.message}`;
+                    term.innerHTML += `<span class="error">[!] Error: ${data.message}</span>\n`;
+                }
+            } catch(e) {
+                out.innerHTML = 'Error: ' + e.message;
+                term.innerHTML += `<span class="error">[!] Network error: ${e.message}</span>\n`;
+            }
+        };
+
+        // ===================== PANEL 4: NETWORK INFO =====================
+        document.getElementById('getNetInfoBtn').onclick = async () => {
+            const out = document.getElementById('networkOutput');
+            out.innerHTML = '<span class="loading"></span> Fetching network info...';
+            
+            try {
+                const res = await fetch('/api/wifi/network-info');
+                const data = await res.json();
+                
+                if(data.status === 'success') {
+                    const d = data.data;
+                    out.innerHTML = `
+                        <h3 style="color:#00ffcc; margin-bottom:15px;">🌐 Network Configuration</h3>
+                        <div class="info-grid">
+                            <div><span class="key">Hostname:</span> <span class="val">${d.hostname}</span></div>
+                            <div><span class="key">Your IP:</span> <span class="val">${d.my_ip}</span></div>
+                            <div><span class="key">Your MAC:</span> <span class="val">${d.my_mac}</span></div>
+                            <div><span class="key">Gateway:</span> <span class="val" style="color:#3366ff;">${d.gateway}</span></div>
+                            <div><span class="key">Interface:</span> <span class="val">${d.interface}</span></div>
+                            <div><span class="key">Network Range:</span> <span class="val">${d.network_range}</span></div>
+                            <div><span class="key">DNS Servers:</span> <span class="val">${d.dns_servers.join(', ') || 'N/A'}</span></div>
+                            <div><span class="key">Operating System:</span> <span class="val">${d.os}</span></div>
+                            <div><span class="key">Uptime:</span> <span class="val">${d.uptime}</span></div>
+                        </div>
+                        
+                        <div style="margin-top:20px; padding:12px; background:#0d0d0d; border-radius:10px;">
+                            <div style="color:#888; font-size:0.7rem; margin-bottom:5px;">📋 NETWORK INFO SUMMARY</div>
+                            <div style="font-size:0.75rem; color:#00ffcc88;">
+                                Your device <strong style="color:#00ffcc;">${d.hostname}</strong> is connected to the network 
+                                <strong style="color:#00ffcc;">${d.network_range}</strong> via interface 
+                                <strong style="color:#00ffcc;">${d.interface}</strong>. 
+                                Your gateway is <strong style="color:#3366ff;">${d.gateway}</strong> 
+                                and your DNS is handled by ${d.dns_servers.length > 0 ? `<strong style="color:#00ffcc;">${d.dns_servers[0]}</strong>` : 'the default router'}.
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    out.innerHTML = `❌ ${data.message}`;
+                }
+            } catch(e) {
+                out.innerHTML = 'Error: ' + e.message;
+            }
+        };
+
+        // ===================== PANEL 5: DEEP SCAN =====================
+        document.getElementById('deepScanBtn').onclick = async () => {
+            const ip = document.getElementById('deepScanIp').value.trim();
+            const out = document.getElementById('deepScanOutput');
+            const term = document.getElementById('deepScanTerminal');
+            
+            if(!ip) {
+                out.innerHTML = '❌ Please enter an IP address';
+                return;
+            }
+            
+            term.style.display = 'block';
+            out.innerHTML = '<span class="loading"></span> Deep scanning ' + ip + '... (this may take 30-60 seconds)';
+            term.innerHTML = `<span class="info">[*] Starting deep scan on target: ${ip}</span>\n`;
+            term.innerHTML += '<span class="info">[*] Scanning ports: 21,22,23,25,53,80,443,554,8080,8443,3306,3389,5900...</span>\n';
+            
+            try {
+                const res = await fetch(`/api/wifi/device-detail?ip=${ip}`);
+                term.innerHTML += '<span class="info">[*] Processing results...</span>\n';
+                const data = await res.json();
+                
+                if(data.status === 'success') {
+                    const fp = data.fingerprint;
+                    const ports = fp.ports || {};
+                    const portCount = Object.keys(ports).length;
+                    
+                    term.innerHTML += `<span class="success">[✓] Scan complete. Found ${portCount} open port(s).</span>\n`;
+                    
+                    let html = `
+                        <h3 style="color:#00ffcc;">🔍 Deep Scan Results: ${ip}</h3>
+                        <div class="info-grid" style="margin-top:10px;">
+                            <div><span class="key">Target IP:</span> <span class="val">${data.ip}</span></div>
+                            <div><span class="key">OS Detection:</span> <span class="val">${fp.os || 'Unknown'}</span></div>
+                            <div><span class="key">OS Accuracy:</span> <span class="val">${fp.os_accuracy || 'N/A'}%</span></div>
+                            <div><span class="key">Uptime:</span> <span class="val">${fp.uptime || 'Unknown'}</span></div>
+                            <div><span class="key">Open Ports:</span> <span class="val">${portCount}</span></div>
+                        </div>
+                    `;
+                    
+                    if(portCount > 0) {
+                        html += `<h4 style="margin-top:15px; color:#0f0;">📌 Open Ports & Services</h4>
+                        <table class="device-table">
+                            <thead>
+                                <tr>
+                                    <th>Port</th>
+                                    <th>State</th>
+                                    <th>Service</th>
+                                    <th>Product</th>
+                                    <th>Version</th>
+                                </tr>
+                            </thead>
+                            <tbody>`;
+                        
+                        Object.entries(ports).forEach(([port, info]) => {
+                            html += `<tr>
+                                <td style="color:#0af;">${port}</td>
+                                <td><span style="color:#0f0;">${info.state}</span></td>
+                                <td>${info.name || 'unknown'}</td>
+                                <td style="font-size:0.7rem;">${info.product || '-'}</td>
+                                <td style="font-size:0.7rem;">${info.version || '-'}</td>
+                            </tr>`;
+                        });
+                        
+                        html += '</tbody></table>';
+                        
+                        // Camera check based on ports
+                        const camPorts = [554, 37777, 34567, 8899, 8000, 8554];
+                        const foundCameraPorts = Object.keys(ports).filter(p => camPorts.includes(parseInt(p)));
+                        if(foundCameraPorts.length > 0) {
+                            html += `<div style="margin-top:10px; padding:10px; background:#ff336622; border:1px solid #ff3366; border-radius:10px;">
+                                <strong style="color:#ff3366;">📷 CAMERA DETECTED!</strong> 
+                                This device has camera-related ports open: ${foundCameraPorts.join(', ')}
+                            </div>`;
+                        }
+                        
+                        // Security assessment
+                        const riskyPorts = {
+                            21: 'FTP (unencrypted)',
+                            23: 'Telnet (unencrypted)',
+                            25: 'SMTP',
+                            445: 'SMB',
+                            3389: 'RDP',
+                            3306: 'MySQL',
+                            5432: 'PostgreSQL',
+                            6379: 'Redis',
+                            27017: 'MongoDB'
+                        };
+                        const foundRisky = Object.keys(ports).filter(p => riskyPorts[p]).map(p => riskyPorts[p]);
+                        if(foundRisky.length > 0) {
+                            html += `<div style="margin-top:10px; padding:10px; background:#ff660022; border:1px solid #ff6600; border-radius:10px;">
+                                <strong style="color:#ff6600;">⚠️ Security Note:</strong> 
+                                Potential risky services detected: ${foundRisky.join(', ')}
+                            </div>`;
+                        }
+                    } else {
+                        html += `<div style="margin-top:15px; color:#888;">No open ports found or device not responding.</div>`;
+                    }
+                    
+                    out.innerHTML = html;
+                    term.innerHTML += '<span class="success">[✓] Deep scan completed successfully.</span>\n';
+                    
+                } else {
+                    out.innerHTML = `❌ ${data.message}`;
+                    term.innerHTML += `<span class="error">[!] Error: ${data.message}</span>\n`;
+                }
+            } catch(e) {
+                out.innerHTML = 'Error: ' + e.message;
+                term.innerHTML += `<span class="error">[!] Network error: ${e.message}</span>\n`;
+            }
+        };
+
+        // ===================== ENTER KEY SUPPORT FOR DEEP SCAN =====================
+        document.getElementById('deepScanIp').addEventListener('keypress', (e) => {
+            if(e.key === 'Enter') {
+                document.getElementById('deepScanBtn').click();
+            }
+        });
+        
+        // ===================== APPLY SAVED SETTINGS =====================
+        (function() {
+            const settings = JSON.parse(localStorage.getItem('khanToolSettings') || '{}');
+            
+            if (settings.fontStyle) {
+                document.body.style.fontFamily = settings.fontStyle;
+            }
+            
+            if (settings.themeColor) {
+                const style = document.createElement('style');
+                style.textContent = `
+                    .mode-btn.active, .scan-btn, .action-btn {
+                        background: ${settings.themeColor} !important;
+                    }
+                    .container, .output, input {
+                        border-color: ${settings.themeColor} !important;
+                    }
+                    h1, h2, .stat-card .value {
+                        color: ${settings.themeColor} !important;
+                    }
+                    body {
+                        background-color: ${settings.themeMode === 'light' ? '#f0f0f0' : 'black'} !important;
+                        color: ${settings.themeMode === 'light' ? '#333' : settings.themeColor} !important;
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
+            const bgCanvas = document.getElementById('bg-canvas');
+            if (bgCanvas && settings.bgEffects === false) {
+                bgCanvas.style.display = 'none';
+            }
+            
+            if (settings.themeMode === 'light') {
+                document.body.style.backgroundColor = '#f0f0f0';
+            } else {
+                document.body.style.backgroundColor = 'black';
+            }
+        })();
+
+    </script>
+</body>
+</html>

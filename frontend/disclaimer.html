@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Legal Disclaimer - Khan Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: black;
+            font-family: monospace;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* ========== DIFFERENT BACKGROUND ANIMATION (Matrix Rain + Floating Glow) ========== */
+        .disclaimer-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            background: black;
+        }
+        canvas#matrixCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.4;
+        }
+
+        /* Main content card */
+        .disclaimer-container {
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 30px;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(10px);
+            border: 2px solid #ff6600;
+            border-radius: 28px;
+            box-shadow: 0 0 40px rgba(255, 102, 0, 0.4);
+            color: #ddd;
+            font-size: 1rem;
+            line-height: 1.6;
+            z-index: 2;
+            position: relative;
+        }
+
+        .disclaimer-container h1 {
+            color: #ff6600;
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 25px;
+            text-shadow: 0 0 8px #ff6600;
+            border-bottom: 2px solid #ff6600;
+            display: inline-block;
+            width: auto;
+            padding-bottom: 8px;
+        }
+        .disclaimer-container h2 {
+            color: #ffaa00;
+            margin: 20px 0 10px;
+            font-size: 1.5rem;
+        }
+        .disclaimer-container p {
+            margin: 15px 0;
+            text-align: justify;
+        }
+        .disclaimer-container .emoji {
+            font-size: 1.2rem;
+            margin-right: 5px;
+        }
+        .highlight {
+            color: #ffaa00;
+            font-weight: bold;
+        }
+        .warning {
+            color: #ff3366;
+            text-shadow: 0 0 3px #ff3366;
+        }
+
+        /* Back button */
+        .back-btn {
+            display: inline-block;
+            margin-top: 30px;
+            padding: 12px 28px;
+            background: transparent;
+            border: 2px solid #ff6600;
+            color: #ff6600;
+            font-family: monospace;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: 0.3s;
+            text-decoration: none;
+            text-align: center;
+        }
+        .back-btn:hover {
+            background: #ff6600;
+            color: black;
+            box-shadow: 0 0 20px #ff6600;
+            transform: scale(1.02);
+        }
+        .footer-note {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.8rem;
+            color: #aaa;
+        }
+        @media (max-width: 700px) {
+            .disclaimer-container {
+                margin: 20px;
+                padding: 20px;
+            }
+            .disclaimer-container h1 {
+                font-size: 1.6rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="disclaimer-bg"></div>
+    <canvas id="matrixCanvas"></canvas>
+
+    <div class="disclaimer-container">
+        <h1>⚠️ LEGAL DISCLAIMER</h1>
+        
+        <p><span class="emoji">🛡️</span> This platform, <strong class="highlight">"KHAN - HACKER - TOOLKIT (Red Team Edition)"</strong>, is developed strictly for <strong>educational and ethical cybersecurity training purposes</strong>. The primary goal of this tool is to help students, learners, and cybersecurity enthusiasts understand how different cryptographic techniques, attack methodologies, and security mechanisms work in a <strong>controlled and authorized environment</strong>.</p>
+
+        <p><span class="emoji">⚖️</span> By accessing or using this tool, you acknowledge and agree that you will use it <strong>responsibly and only for lawful purposes</strong>. Any attempt to use this tool against systems, networks, applications, or data without explicit written permission from the rightful owner is <strong class="warning">strictly prohibited</strong> and considered illegal under applicable cybercrime laws.</p>
+
+        <p><span class="emoji">🔐</span> This toolkit may include features related to encryption, decryption, brute‑force simulations, and security testing techniques. These features are intended solely for learning, research, and authorized penetration testing scenarios. <strong>Misuse of these functionalities for hacking, unauthorized access, data theft, or any malicious activity is a serious offense</strong> and may lead to legal consequences.</p>
+
+        <p><span class="emoji">🚫</span> The developer of this tool does not promote, support, or encourage any form of illegal hacking or unethical behavior. All users are expected to follow ethical guidelines and act in accordance with local and international cybersecurity laws and regulations.</p>
+
+        <p><span class="emoji">⚠️</span> <strong>You, as the user, are fully responsible for your actions while using this tool.</strong> The creator, developer, or distributor of this software shall not be held liable for any misuse, damage, legal issues, or consequences arising from improper or unauthorized use.</p>
+
+        <p><span class="emoji">📜</span> Before using any feature of this toolkit, ensure that you have proper authorization and understand the legal boundaries. If you are unsure, <strong>do not proceed</strong>.</p>
+
+        <p style="text-align: center; margin-top: 30px;"><span class="emoji">💡</span> <strong>Use responsibly. Learn ethically. Stay legal.</strong></p>
+
+        <div style="text-align: center;">
+            <a href="home.html" class="back-btn">⬅ BACK TO HOME</a>
+        </div>
+        <div class="footer-note">© Khan Cybersecurity Lab | Educational Purpose Only</div>
+    </div>
+
+    <script>
+        // Different background animation: Matrix rain + slow floating particles
+        const canvas = document.getElementById('matrixCanvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let columns;
+        let drops = [];
+        let matrixChars = "アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+        function resize() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+            columns = Math.floor(width / 25);
+            drops = [];
+            for (let i = 0; i < columns; i++) {
+                drops[i] = Math.random() * -100;
+            }
+        }
+
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, width, height);
+            ctx.fillStyle = '#0f0';
+            ctx.font = '18px monospace';
+            for (let i = 0; i < drops.length; i++) {
+                const char = matrixChars[Math.floor(Math.random() * matrixChars.length)];
+                ctx.fillText(char, i * 25, drops[i] * 25);
+                if (drops[i] * 25 > height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+            requestAnimationFrame(drawMatrix);
+        }
+
+        window.addEventListener('resize', () => {
+            resize();
+        });
+        resize();
+        drawMatrix();
+        
+    // Apply saved settings from localStorage (theme, font, background)
+    (function() {
+        const settings = JSON.parse(localStorage.getItem('khanToolSettings') || '{}');
+        
+        // Apply font family
+        if (settings.fontStyle) {
+            document.body.style.fontFamily = settings.fontStyle;
+        }
+        
+        // Apply theme color (set CSS variable)
+        if (settings.themeColor) {
+            document.documentElement.style.setProperty('--theme-color', settings.themeColor);
+            // Also update border colors and text colors if they use this variable
+            const style = document.createElement('style');
+            style.textContent = `
+                .gold-border, .card, input, button, select, .settings-container, .glass-card {
+                    border-color: ${settings.themeColor} !important;
+                }
+                .gold-button, .search-btn, .mode-btn.active, .back-btn {
+                    background: ${settings.themeColor} !important;
+                }
+                h1, h2, h3, .gold-text, .field-label, .stat-number {
+                    color: ${settings.themeColor} !important;
+                }
+                body {
+                    background-color: ${settings.themeMode === 'light' ? '#f0f0f0' : 'black'} !important;
+                    color: ${settings.themeColor} !important;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        // Toggle background effects (canvas visibility)
+        const bgCanvas = document.getElementById('bg-canvas');
+        if (bgCanvas) {
+            bgCanvas.style.display = settings.bgEffects === false ? 'none' : 'block';
+        }
+        
+        // Optional: apply dark/light mode body background
+        if (settings.themeMode === 'light') {
+            document.body.style.backgroundColor = '#f0f0f0';
+        } else {
+            document.body.style.backgroundColor = 'black';
+        }
+    })();
+
+    </script>
+</body>
+</html>

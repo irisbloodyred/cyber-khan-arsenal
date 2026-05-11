@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NMAP Scanner - Khan Tool</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0a0c0f;
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+            color: #00ffbf;
+        }
+        .main-container {
+            display: flex;
+            gap: 20px;
+            max-width: 1400px;
+            margin: auto;
+        }
+        /* Sidebar Styles */
+        .sidebar {
+            width: 320px;
+            background: rgba(0, 0, 0, 0.85);
+            border: 1px solid #ff6600;
+            border-radius: 15px;
+            padding: 20px;
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+        .sidebar h3 {
+            color: #ff6600;
+            text-align: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #ff6600;
+            padding-bottom: 8px;
+        }
+        .sidebar h4 {
+            color: #ffaa00;
+            margin: 15px 0 8px 0;
+            font-size: 0.9rem;
+        }
+        .cmd-list {
+            list-style: none;
+        }
+        .cmd-list li {
+            background: #0a0a0a;
+            margin: 8px 0;
+            padding: 8px 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-family: monospace;
+            border-left: 3px solid #ff6600;
+            cursor: pointer;
+            transition: all 0.2s;
+            word-break: break-all;
+        }
+        .cmd-list li:hover {
+            background: #1a1a2a;
+            transform: translateX(5px);
+            border-left-color: #00ffbf;
+        }
+        .cmd-desc {
+            font-size: 9px;
+            color: #888;
+            margin-top: 4px;
+        }
+        .copy-tip {
+            text-align: center;
+            font-size: 10px;
+            color: #555;
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid #222;
+        }
+        /* Main Content Styles */
+        .container {
+            flex: 1;
+            background: rgba(0,0,0,0.85);
+            border: 2px solid #ff6600;
+            border-radius: 15px;
+            padding: 25px;
+        }
+        h1 { text-align: center; color: #ff6600; margin-bottom: 20px; }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; color: #ffaa00; font-size: 0.8rem; margin-bottom: 5px; }
+        input {
+            width: 100%;
+            padding: 10px;
+            background: #111;
+            border: 1px solid #ff6600;
+            color: #00ffbf;
+            border-radius: 8px;
+            font-family: monospace;
+        }
+        button {
+            background: #ff6600;
+            color: black;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 30px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        button:hover { background: #ff8833; transform: scale(1.02); }
+        .output-box {
+            background: #0a0a0a;
+            border: 1px solid #ff6600;
+            border-radius: 10px;
+            padding: 15px;
+            height: 400px;
+            overflow-y: auto;
+            font-size: 12px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            color: #88ff88;
+        }
+        .example { font-size: 11px; color: #888; margin-top: 5px; }
+        .flex-row { display: flex; gap: 10px; }
+        .flex-row input { flex: 1; }
+        a { color: #ff6600; text-decoration: none; display: inline-block; margin-top: 15px; }
+        hr { border-color: #ff660033; margin: 15px 0; }
+        @media (max-width: 900px) {
+            .main-container { flex-direction: column; }
+            .sidebar { width: 100%; position: static; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-container">
+    <!-- SIDEBAR WITH 15 COMMANDS -->
+    <div class="sidebar">
+        <h3>📋 NMAP COMMANDS</h3>
+        <p style="font-size: 11px; text-align: center; color: #888;">Click any command to copy</p>
+        
+        <h4>🔍 BASIC SCANS</h4>
+        <ul class="cmd-list">
+            <li onclick="copyToClipboard('nmap 127.0.0.1')">
+                <code>nmap 127.0.0.1</code>
+                <div class="cmd-desc">Simple scan on localhost</div>
+            </li>
+            <li onclick="copyToClipboard('nmap -sV 192.168.1.1')">
+                <code>nmap -sV 192.168.1.1</code>
+                <div class="cmd-desc">Version detection on target</div>
+            </li>
+            <li onclick="copyToClipboard('nmap -O 192.168.1.1')">
+                <code>nmap -O 192.168.1.1</code>
+                <div class="cmd-desc">OS detection (requires sudo)</div>
+            </li>
+            <li onclick="copyToClipboard('nmap -A 192.168.1.1')">
+                <code>nmap -A 192.168.1.1</code>
+                <div class="cmd-desc">Aggressive scan (OS, version, traceroute)</div>
+            </li>
+        </ul>
+        
+        <h4>🌐 NETWORK SCANS</h4>
+        <ul class="cmd-list">
+            <li onclick="copyToClipboard('nmap -sn 192.168.1.0/24')">
+                <code>nmap -sn 192.168.1.0/24</code>
+                <div class="cmd-desc">Discover all devices on network (ping sweep)</div>
+            </li>
+            <li onclick="copyToClipboard('nmap -sL 192.168.1.0/24')">
+                <code>nmap -sL 192.168.1.0/24</code>
+                <div class="cmd-desc">List scan - DNS resolution only</div>
+            </li>
+            <li onclick="copyToClipboard('nmap 192.168.1.1-100')">
+                <code>nmap 192.168.1.1-100</code>
+                <div class="cmd-desc">Scan IP range 1 to 100</div>
+            </li>
+        </ul>
+        
+        <h4>🔌 PORT SCANS</h4>
+        <ul class="cmd-list">
+            <li onclick="copyToClipboard('nmap -p 22,80,443 192.168.1.1')">
+                <code>nmap -p 22,80,443 192.168.1.1</code>
+                <div class="cmd-desc">Scan specific ports</div>
+            </li>
+            <li onclick="copyToClipboard('nmap -p- 192.168.1.1')">
+                <code>nmap -p- 192.168.1.1</code>
+                <div class="cmd-desc">Scan ALL ports (1-65535) - slow</div>
+            </li>
+            <li onclick="copyToClipboard('nmap -p 1-1000 192.168.1.1')">
+                <code>nmap -p 1-1000 192.168.1.1</code>
+                <div class="cmd-desc">Scan first 1000 ports</div>
+            </li>
+            <li onclick="copyToClipboard('nmap --top-ports 100 192.168.1.1')">
+                <code>nmap --top-ports 100 192.168.1.1</code>
+                <div class="cmd-desc">Scan top 100 most common ports</div>
+            </li>
+        </ul>
+        
+        <h4>⚡ FAST & STEALTH</h4>
+        <ul class="cmd-list">
+            <li onclick="copyToClipboard('nmap -F 192.168.1.1')">
+                <code>nmap -F 192.168.1.1</code>
+                <div class="cmd-desc">Fast scan (100 ports only)</div>
+            </li>
+            <li onclick="copyToClipboard('nmap -T4 -F 192.168.1.1')">
+                <code>nmap -T4 -F 192.168.1.1</code>
+                <div class="cmd-desc">Fast scan with aggressive timing</div>
+            </li>
+            <li onclick="copyToClipboard('sudo nmap -sS 192.168.1.1')">
+                <code>sudo nmap -sS 192.168.1.1</code>
+                <div class="cmd-desc">Stealth SYN scan (requires sudo)</div>
+            </li>
+        </ul>
+        
+        <h4>🎯 OTHER USEFUL</h4>
+        <ul class="cmd-list">
+            <li onclick="copyToClipboard('nmap -sV --script vuln 192.168.1.1')">
+                <code>nmap -sV --script vuln 192.168.1.1</code>
+                <div class="cmd-desc">Vulnerability scan (slow)</div>
+            </li>
+            <li onclick="copyToClipboard('nmap -sU -p 53 192.168.1.1')">
+                <code>nmap -sU -p 53 192.168.1.1</code>
+                <div class="cmd-desc">UDP scan on DNS port</div>
+            </li>
+            <li onclick="copyToClipboard('nmap -oN output.txt 192.168.1.1')">
+                <code>nmap -oN output.txt 192.168.1.1</code>
+                <div class="cmd-desc">Save output to file</div>
+            </li>
+        </ul>
+        
+        <div class="copy-tip">
+            💡 Click any command to copy | Paste in terminal
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="container">
+        <h1>🔍 NMAP NETWORK SCANNER</h1>
+        
+        <div class="input-group">
+            <label>🎯 Target IP / Domain</label>
+            <input type="text" id="target" placeholder="127.0.0.1, scanme.nmap.org, 192.168.1.1/24" value="127.0.0.1">
+            <div class="example">💡 Examples: 127.0.0.1 | scanme.nmap.org | 192.168.1.1/24</div>
+        </div>
+        
+        <div class="input-group">
+            <label>⚙️ Nmap Options (optional)</label>
+            <input type="text" id="options" placeholder="-sV -p 1-1000 -O">
+            <div class="example">💡 Common: -sV (version), -O (OS), -p 1-1000 (ports), -sS (stealth)</div>
+        </div>
+        
+        <div class="input-group">
+            <label>📝 Full Command (optional - overrides above)</label>
+            <input type="text" id="fullCommand" placeholder="nmap -sV -p 22,80,443 127.0.0.1">
+            <div class="example">💡 Advanced users: write complete nmap command here</div>
+        </div>
+        
+        <button id="scanBtn">🚀 START SCAN</button>
+        <button id="clearBtn" style="background:#333; color:#ff6600;">🗑 CLEAR OUTPUT</button>
+        
+        <hr>
+        <h3>📟 SCAN OUTPUT</h3>
+        <div class="output-box" id="output">[*] Ready to scan. Enter target and click START.</div>
+        
+        <a href="home.html">⬅ BACK TO HOME</a>
+    </div>
+</div>
+
+<script>
+    const targetInput = document.getElementById('target');
+    const optionsInput = document.getElementById('options');
+    const fullCommandInput = document.getElementById('fullCommand');
+    const scanBtn = document.getElementById('scanBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const outputDiv = document.getElementById('output');
+    
+    // Copy to clipboard function for sidebar commands
+    function copyToClipboard(command) {
+        navigator.clipboard.writeText(command);
+        // Visual feedback
+        const toast = document.createElement('div');
+        toast.textContent = '✅ Copied: ' + command.substring(0, 50) + (command.length > 50 ? '...' : '');
+        toast.style.position = 'fixed';
+        toast.style.bottom = '20px';
+        toast.style.right = '20px';
+        toast.style.background = '#2ecc71';
+        toast.style.color = '#000';
+        toast.style.padding = '10px 20px';
+        toast.style.borderRadius = '8px';
+        toast.style.fontFamily = 'monospace';
+        toast.style.fontSize = '12px';
+        toast.style.zIndex = '9999';
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 2000);
+    }
+    
+    async function startScan() {
+        const target = targetInput.value.trim();
+        const options = optionsInput.value.trim();
+        const fullCommand = fullCommandInput.value.trim();
+        
+        if (!target && !fullCommand) {
+            outputDiv.innerHTML = '❌ Please enter a target IP or domain';
+            return;
+        }
+        
+        outputDiv.innerHTML = '⏳ Scanning... Please wait (may take 10-60 seconds)\n';
+        
+        try {
+            const response = await fetch('/api/run-nmap', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    target: target,
+                    options: options,
+                    full_command: fullCommand
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+                outputDiv.innerHTML = data.output;
+            } else {
+                outputDiv.innerHTML = `❌ Error: ${data.message}`;
+            }
+        } catch (err) {
+            outputDiv.innerHTML = `❌ Network error: ${err.message}`;
+        }
+    }
+    
+    function clearOutput() {
+        outputDiv.innerHTML = '[*] Output cleared. Ready for next scan.';
+    }
+    
+    scanBtn.onclick = startScan;
+    clearBtn.onclick = clearOutput;
+    
+    // Enter key support
+    targetInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') startScan();
+    });
+</script>
+</body>
+</html>

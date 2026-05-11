@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Khan Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: black;
+            color: #ff6600;
+            font-family: monospace;
+            min-height: 100vh;
+            padding: 30px;
+            position: relative;
+            overflow-x: hidden;
+        }
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            pointer-events: none;
+            opacity: 0.3;
+        }
+        .settings-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(10px);
+            border: 2px solid #ff6600;
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 0 40px rgba(255,102,0,0.4);
+            position: relative;
+            z-index: 2;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2rem;
+            text-shadow: 0 0 5px #ff6600;
+        }
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+        }
+        .card {
+            background: rgba(0,0,0,0.6);
+            border: 1px solid #ff6600;
+            border-radius: 20px;
+            padding: 20px;
+        }
+        .card h3 {
+            color: #ffaa00;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #ff6600;
+            padding-bottom: 5px;
+        }
+        .setting-item {
+            margin: 12px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .setting-item label {
+            font-weight: bold;
+        }
+        select, input, button {
+            background: black;
+            border: 1px solid #ff6600;
+            color: #ff6600;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-family: monospace;
+            cursor: pointer;
+        }
+        button {
+            background: #222;
+        }
+        button:hover {
+            background: #ff6600;
+            color: black;
+        }
+        .back-btn {
+            display: block;
+            width: 200px;
+            margin: 30px auto 0;
+            text-align: center;
+            padding: 10px;
+            background: #ff6600;
+            color: black;
+            text-decoration: none;
+            border-radius: 40px;
+            font-weight: bold;
+        }
+        .back-btn:hover {
+            background: #ffaa00;
+            box-shadow: 0 0 20px #ff6600;
+        }
+        .reset-btn {
+            background: #ff3366;
+            border-color: #ff3366;
+            color: white;
+        }
+        .reset-btn:hover {
+            background: red;
+        }
+        .otp-group {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+        }
+        .otp-group input {
+            flex: 1;
+        }
+        .status-msg {
+            font-size: 0.8rem;
+            margin-top: 5px;
+            color: #ffaa00;
+        }
+        @media (max-width: 700px) {
+            body { padding: 15px; }
+            .settings-container { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="bg-canvas"></canvas>
+    <div class="settings-container">
+        <h1>⚙️ SETTINGS PANEL</h1>
+        <div class="settings-grid">
+
+            <!-- GENERAL -->
+            <div class="card">
+                <h3>🧑‍💻 GENERAL</h3>
+                <div class="setting-item">
+                    <label>🌐 Language</label>
+                    <select id="language">
+                        <option value="en">English</option>
+                        <option value="ur">Urdu</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <label>🕒 Time Format</label>
+                    <select id="timeFormat">
+                        <option value="12h">12h</option>
+                        <option value="24h">24h</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <label>📁 Default Page</label>
+                    <select id="defaultPage">
+                        <option value="cipher">Cipher</option>
+                        <option value="attack">Attack</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <label>🔄 Auto Save Settings</label>
+                    <input type="checkbox" id="autoSave" checked>
+                </div>
+            </div>
+
+            <!-- APPEARANCE (with 10+ fonts) -->
+            <div class="card">
+                <h3>🎨 APPEARANCE</h3>
+                <div class="setting-item">
+                    <label>🌙 Dark / Light Mode</label>
+                    <select id="themeMode">
+                        <option value="dark">Dark</option>
+                        <option value="light">Light</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <label>🎨 Theme Color</label>
+                    <select id="themeColor">
+                        <option value="#ff6600">Orange</option>
+                        <option value="#ff3366">Red</option>
+                        <option value="#00ff00">Matrix Green</option>
+                        <option value="#00ffff">Cyan</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <label>✨ Animations ON/OFF</label>
+                    <input type="checkbox" id="animations" checked>
+                </div>
+                <div class="setting-item">
+                    <label>🖼️ Background Effects</label>
+                    <input type="checkbox" id="bgEffects" checked>
+                </div>
+                <div class="setting-item">
+                    <label>🔤 Font Style</label>
+                    <select id="fontStyle">
+                        <option value="monospace">Monospace (Default)</option>
+                        <option value="'Courier New', monospace">Courier New</option>
+                        <option value="'Fira Code', monospace">Fira Code</option>
+                        <option value="'Source Code Pro', monospace">Source Code Pro</option>
+                        <option value="'Ubuntu Mono', monospace">Ubuntu Mono</option>
+                        <option value="'VT323', monospace">VT323 (Retro)</option>
+                        <option value="'Major Mono Display', monospace">Major Mono Display</option>
+                        <option value="'Space Mono', monospace">Space Mono</option>
+                        <option value="'Inconsolata', monospace">Inconsolata</option>
+                        <option value="'Cascadia Code', monospace">Cascadia Code</option>
+                        <option value="'JetBrains Mono', monospace">JetBrains Mono</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- AUDIO -->
+            <div class="card">
+                <h3>🔊 AUDIO</h3>
+                <div class="setting-item">
+                    <label>🔊 Background Music</label>
+                    <input type="checkbox" id="bgMusicToggle" checked>
+                </div>
+                <div class="setting-item">
+                    <label>🔉 Volume Control</label>
+                    <input type="range" id="volume" min="0" max="100" value="50">
+                </div>
+                <div class="setting-item">
+                    <label>🎵 Change Music Track</label>
+                    <select id="musicTrack">
+                        <option value="song.mp3">Default</option>
+                        <option value="password.mp3">Ambient</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <label>🔔 Sound Effects</label>
+                    <input type="checkbox" id="soundEffects" checked>
+                </div>
+            </div>
+
+            <!-- SECURITY (with password list & 2FA) -->
+            <div class="card">
+                <h3>🔐 SECURITY</h3>
+                <div class="setting-item">
+                    <label>🔑 Change Password</label>
+                    <select id="passwordSelect">
+                        <option value="">-- Select a password --</option>
+                        <option value="THE-KHAN-PROTOCOL">THE-KHAN-PROTOCOL</option>
+                        <option value="CYBER-CORE-X">CYBER-CORE-X</option>
+                        <option value="ENCRYPT-MASTER">ENCRYPT-MASTER</option>
+                        <option value="khan123">khan123</option>
+                        <option value="NEO-SYSTEM-7">NEO-SYSTEM-7</option>
+                        <option value="HAZARA-CYBER-KING">HAZARA-CYBER-KING</option>
+                        <option value="SECRET-SALT-256">SECRET-SALT-256</option>
+                        <option value="DECRYPT-THE-WORLD">DECRYPT-THE-WORLD</option>
+                        <option value="GHOST-OPERATOR">GHOST-OPERATOR</option>
+                        <option value="g">g</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <label>🔒 Enable 2-Step Verification</label>
+                    <input type="checkbox" id="twoFactorToggle">
+                </div>
+                <div id="twoFactorSection" style="display:none; flex-direction:column; gap:8px; margin-top:10px;">
+                    <div class="setting-item">
+                        <label>📧 Email for OTP</label>
+                        <input type="email" id="twoFactorEmail" placeholder="your@email.com">
+                    </div>
+                    <div class="setting-item">
+                        <label>🔑 Send OTP</label>
+                        <div class="otp-group">
+                            <button id="sendOtpBtn">Send Verification Code</button>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <label>🔢 Enter OTP</label>
+                        <div class="otp-group">
+                            <input type="text" id="otpCode" placeholder="6-digit code">
+                            <button id="verifyOtpBtn">Verify & Enable</button>
+                        </div>
+                    </div>
+                    <div id="otpStatus" class="status-msg"></div>
+                </div>
+                <div class="setting-item">
+                    <label>🧠 Remember Login</label>
+                    <input type="checkbox" id="rememberLogin">
+                </div>
+                <div class="setting-item">
+                    <label>🚫 Lock After Idle (mins)</label>
+                    <input type="number" id="idleTimeout" min="0" max="60" value="0" placeholder="0=off">
+                </div>
+            </div>
+
+            <!-- TOOL SETTINGS -->
+            <div class="card">
+                <h3>⚡ TOOL SETTINGS</h3>
+                <div class="setting-item">
+                    <label>⚙️ Default Cipher Mode</label>
+                    <select id="defaultCipher">
+                        <option value="caesar">Caesar</option>
+                        <option value="substitution">Substitution</option>
+                        <option value="transposition">Transposition</option>
+                        <option value="vigenere">Vigenere</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <label>📂 Enable File Upload Mode</label>
+                    <input type="checkbox" id="fileUpload" checked>
+                </div>
+                <div class="setting-item">
+                    <label>🧾 Save History ON/OFF</label>
+                    <input type="checkbox" id="saveHistory">
+                </div>
+                <div class="setting-item">
+                    <label>📊 Show Advanced Output</label>
+                    <input type="checkbox" id="advancedOutput" checked>
+                </div>
+            </div>
+
+            <!-- ADVANCED -->
+            <div class="card">
+                <h3>🧪 ADVANCED</h3>
+                <div class="setting-item">
+                    <label>💻 Terminal Mode</label>
+                    <input type="checkbox" id="terminalMode">
+                </div>
+                <div class="setting-item">
+                    <label>📡 Debug Mode</label>
+                    <input type="checkbox" id="debugMode">
+                </div>
+                <div class="setting-item">
+                    <label>🧬 Experimental Features</label>
+                    <input type="checkbox" id="experimental">
+                </div>
+                <div class="setting-item">
+                    <label>🚀 Performance Mode</label>
+                    <select id="perfMode">
+                        <option value="high">High Graphics</option>
+                        <option value="low">Low Lag</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- LEGAL / INFO -->
+            <div class="card">
+                <h3>📜 LEGAL / INFO</h3>
+                <div class="setting-item">
+                    <label>⚠️ View Disclaimer</label>
+                    <button id="viewDisclaimerBtn">Open Disclaimer</button>
+                </div>
+                <div class="setting-item">
+                    <label>📘 Open Guidelines</label>
+                    <button id="viewGuidelineBtn">Open Guideline</button>
+                </div>
+                <div class="setting-item">
+                    <label>👨‍💻 Developer Info</label>
+                    <button id="devInfoBtn">Show Info</button>
+                </div>
+                <div class="setting-item">
+                    <label>🔄 Reset All Settings</label>
+                    <button id="resetSettingsBtn" class="reset-btn">Reset to Default</button>
+                </div>
+            </div>
+
+            <!-- EXTRA -->
+            <div class="card">
+                <h3>🔥 EXTRA</h3>
+                <div class="setting-item">
+                    <label>🎭 Fake Hacker Mode</label>
+                    <input type="checkbox" id="fakeHackerMode">
+                </div>
+                <div class="setting-item">
+                    <label>🕵️ Stealth Mode (hide UI)</label>
+                    <input type="checkbox" id="stealthMode">
+                </div>
+                <div class="setting-item">
+                    <label>📸 Screenshot Block</label>
+                    <input type="checkbox" id="screenshotBlock">
+                </div>
+            </div>
+        </div>
+
+        <a href="home.html" class="back-btn">⬅ BACK TO HOME</a>
+    </div>
+
+    <script>
+        // ========== BACKGROUND ANIMATION (Matrix Rain) ==========
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height, columns, drops;
+        const chars = "アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+        function resize() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+            columns = Math.floor(width / 25);
+            drops = [];
+            for (let i = 0; i < columns; i++) drops[i] = Math.random() * -100;
+        }
+
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, width, height);
+            ctx.fillStyle = '#0f0';
+            ctx.font = '18px monospace';
+            for (let i = 0; i < drops.length; i++) {
+                const char = chars[Math.floor(Math.random() * chars.length)];
+                ctx.fillText(char, i * 25, drops[i] * 25);
+                if (drops[i] * 25 > height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            }
+            requestAnimationFrame(drawMatrix);
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+        drawMatrix();
+
+        // ========== SETTINGS FUNCTIONALITY ==========
+        function loadSettings() {
+            const settings = JSON.parse(localStorage.getItem('khanToolSettings') || '{}');
+            document.getElementById('language').value = settings.language || 'en';
+            document.getElementById('timeFormat').value = settings.timeFormat || '12h';
+            document.getElementById('defaultPage').value = settings.defaultPage || 'cipher';
+            document.getElementById('autoSave').checked = settings.autoSave !== false;
+            document.getElementById('themeMode').value = settings.themeMode || 'dark';
+            document.getElementById('themeColor').value = settings.themeColor || '#ff6600';
+            document.getElementById('animations').checked = settings.animations !== false;
+            document.getElementById('bgEffects').checked = settings.bgEffects !== false;
+            document.getElementById('fontStyle').value = settings.fontStyle || 'monospace';
+            document.getElementById('bgMusicToggle').checked = settings.bgMusicToggle !== false;
+            document.getElementById('volume').value = settings.volume !== undefined ? settings.volume : 50;
+            document.getElementById('musicTrack').value = settings.musicTrack || 'song.mp3';
+            document.getElementById('soundEffects').checked = settings.soundEffects !== false;
+            document.getElementById('twoFactorToggle').checked = settings.twoFactorEnabled || false;
+            document.getElementById('twoFactorEmail').value = settings.twoFactorEmail || '';
+            document.getElementById('rememberLogin').checked = settings.rememberLogin || false;
+            document.getElementById('idleTimeout').value = settings.idleTimeout || 0;
+            document.getElementById('defaultCipher').value = settings.defaultCipher || 'caesar';
+            document.getElementById('fileUpload').checked = settings.fileUpload !== false;
+            document.getElementById('saveHistory').checked = settings.saveHistory || false;
+            document.getElementById('advancedOutput').checked = settings.advancedOutput !== false;
+            document.getElementById('terminalMode').checked = settings.terminalMode || false;
+            document.getElementById('debugMode').checked = settings.debugMode || false;
+            document.getElementById('experimental').checked = settings.experimental || false;
+            document.getElementById('perfMode').value = settings.perfMode || 'high';
+            document.getElementById('fakeHackerMode').checked = settings.fakeHackerMode || false;
+            document.getElementById('stealthMode').checked = settings.stealthMode || false;
+            document.getElementById('screenshotBlock').checked = settings.screenshotBlock || false;
+
+            // Show/hide 2FA section
+            const twoFactorSection = document.getElementById('twoFactorSection');
+            twoFactorSection.style.display = document.getElementById('twoFactorToggle').checked ? 'flex' : 'none';
+            applySettingsToPage(settings);
+        }
+
+        function applySettingsToPage(settings) {
+            const color = settings.themeColor || '#ff6600';
+            document.documentElement.style.setProperty('--theme-color', color);
+            const style = document.createElement('style');
+            style.id = 'dynamic-settings-style';
+            const old = document.getElementById('dynamic-settings-style');
+            if (old) old.remove();
+            style.textContent = `
+                .settings-container, .card, select, input, button, .back-btn {
+                    border-color: ${color} !important;
+                }
+                .back-btn, .verify-btn {
+                    background: ${color} !important;
+                }
+                h1, .card h3, label {
+                    color: ${color} !important;
+                }
+                body {
+                    background: ${settings.themeMode === 'light' ? '#f0f0f0' : 'black'} !important;
+                    color: ${color} !important;
+                }
+                .settings-container {
+                    background: ${settings.themeMode === 'light' ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.75)'} !important;
+                }
+                body {
+                    font-family: ${settings.fontStyle || 'monospace'} !important;
+                }
+            `;
+            document.head.appendChild(style);
+            const canvas = document.getElementById('bg-canvas');
+            if (settings.bgEffects === false) canvas.style.display = 'none';
+            else canvas.style.display = 'block';
+        }
+
+        // Silent save (no alert)
+        function saveSettingsSilent() {
+            const settings = {
+                language: document.getElementById('language').value,
+                timeFormat: document.getElementById('timeFormat').value,
+                defaultPage: document.getElementById('defaultPage').value,
+                autoSave: document.getElementById('autoSave').checked,
+                themeMode: document.getElementById('themeMode').value,
+                themeColor: document.getElementById('themeColor').value,
+                animations: document.getElementById('animations').checked,
+                bgEffects: document.getElementById('bgEffects').checked,
+                fontStyle: document.getElementById('fontStyle').value,
+                bgMusicToggle: document.getElementById('bgMusicToggle').checked,
+                volume: parseInt(document.getElementById('volume').value),
+                musicTrack: document.getElementById('musicTrack').value,
+                soundEffects: document.getElementById('soundEffects').checked,
+                twoFactorEnabled: document.getElementById('twoFactorToggle').checked,
+                twoFactorEmail: document.getElementById('twoFactorEmail').value,
+                rememberLogin: document.getElementById('rememberLogin').checked,
+                idleTimeout: parseInt(document.getElementById('idleTimeout').value),
+                defaultCipher: document.getElementById('defaultCipher').value,
+                fileUpload: document.getElementById('fileUpload').checked,
+                saveHistory: document.getElementById('saveHistory').checked,
+                advancedOutput: document.getElementById('advancedOutput').checked,
+                terminalMode: document.getElementById('terminalMode').checked,
+                debugMode: document.getElementById('debugMode').checked,
+                experimental: document.getElementById('experimental').checked,
+                perfMode: document.getElementById('perfMode').value,
+                fakeHackerMode: document.getElementById('fakeHackerMode').checked,
+                stealthMode: document.getElementById('stealthMode').checked,
+                screenshotBlock: document.getElementById('screenshotBlock').checked
+            };
+            localStorage.setItem('khanToolSettings', JSON.stringify(settings));
+            // No alert!
+        }
+
+        function bindEvents() {
+            const elements = document.querySelectorAll('select, input');
+            elements.forEach(el => {
+                el.addEventListener('change', () => {
+                    if (document.getElementById('autoSave').checked) saveSettingsSilent();
+                });
+            });
+            document.getElementById('volume').addEventListener('input', () => {
+                if (document.getElementById('autoSave').checked) saveSettingsSilent();
+            });
+            // Show/hide 2FA section on toggle
+            document.getElementById('twoFactorToggle').addEventListener('change', () => {
+                const section = document.getElementById('twoFactorSection');
+                section.style.display = document.getElementById('twoFactorToggle').checked ? 'flex' : 'none';
+                if (document.getElementById('autoSave').checked) saveSettingsSilent();
+            });
+            document.getElementById('twoFactorEmail').addEventListener('input', () => {
+                if (document.getElementById('autoSave').checked) saveSettingsSilent();
+            });
+        }
+
+        // Change password using dropdown
+        document.getElementById('passwordSelect').addEventListener('change', function() {
+            const newPass = this.value;
+            if (newPass) {
+                localStorage.setItem('customPassword', newPass);
+                alert(`Password changed to: ${newPass}`);
+                this.value = '';
+            }
+        });
+
+        // 2FA: Send OTP via backend (email)
+        let currentOtp = null;
+        document.getElementById('sendOtpBtn').addEventListener('click', async () => {
+            const email = document.getElementById('twoFactorEmail').value;
+            if (!email) {
+                document.getElementById('otpStatus').innerHTML = '❌ Please enter email first.';
+                return;
+            }
+            document.getElementById('otpStatus').innerHTML = '⏳ Sending OTP...';
+            try {
+                const response = await fetch('/send-otp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email })
+                });
+                const data = await response.json();
+                if (data.status === 'success') {
+                    currentOtp = data.otp; // store for verification
+                    document.getElementById('otpStatus').innerHTML = '✅ OTP sent to your email.';
+                } else {
+                    document.getElementById('otpStatus').innerHTML = '❌ Failed to send OTP.';
+                }
+            } catch (err) {
+                document.getElementById('otpStatus').innerHTML = '❌ Server error.';
+            }
+        });
+
+        document.getElementById('verifyOtpBtn').addEventListener('click', () => {
+            const entered = document.getElementById('otpCode').value;
+            if (entered === currentOtp) {
+                document.getElementById('otpStatus').innerHTML = '✅ 2FA enabled successfully!';
+                // Save that 2FA is verified for this email
+                localStorage.setItem('twoFactorVerified', 'true');
+                localStorage.setItem('twoFactorEmail', document.getElementById('twoFactorEmail').value);
+                saveSettingsSilent();
+            } else {
+                document.getElementById('otpStatus').innerHTML = '❌ Invalid OTP. Try again.';
+            }
+        });
+
+        // Buttons actions
+        document.getElementById('viewDisclaimerBtn').onclick = () => window.location.href = '/disclaimer';
+        document.getElementById('viewGuidelineBtn').onclick = () => window.location.href = 'home.html';
+        document.getElementById('devInfoBtn').onclick = () => alert('👨‍💻 Developer: Rehan Khan\n🔐 Cybersecurity Student\n📧 rehantanoli8609@gmail.com\n🎓 Bano Qabil Project');
+        document.getElementById('resetSettingsBtn').onclick = () => {
+            if (confirm('Reset all settings to default?')) {
+                localStorage.removeItem('khanToolSettings');
+                localStorage.removeItem('customPassword');
+                localStorage.removeItem('twoFactorVerified');
+                loadSettings();
+                saveSettingsSilent();
+                alert('Settings reset to default.');
+            }
+        };
+
+        window.addEventListener('load', () => {
+            loadSettings();
+            bindEvents();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attack Tools - Khan Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: rgb(10, 10, 20);
+            color: #ff6600;
+            font-family: monospace;
+            min-height: 100vh;
+            position: relative;
+            overflow-y: auto;  /* SCROLLING ADDED */
+            overflow-x: hidden;
+        }
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            pointer-events: none;
+            background: #0a0a0a;
+        }
+        .glow-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(255,102,0,0.15) 0%, black 85%);
+            z-index: -1;
+        }
+        .container {
+            width: 90%;
+            max-width: 1300px;
+            margin: 40px auto;  /* CHANGED: margin auto for scrolling */
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            border: 2px solid #ff6600;
+            border-radius: 40px;
+            padding: 40px 30px;
+            text-align: center;
+            box-shadow: 0 0 50px rgba(255,102,0,0.3);
+            z-index: 2;
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 40px;
+            text-shadow: 0 0 10px #ff6600;
+            letter-spacing: 4px;
+        }
+        .tools-grid {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-bottom: 50px;
+        }
+        
+        /* Unified Card Style - Sab Ka Size Same */
+        .tool-card {
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #ff6600;
+            border-radius: 25px;
+            padding: 25px 20px;
+            width: 180px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(255,102,0,0.3);
+        }
+        .tool-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 35px #ff6600;
+            background: rgba(255,102,0,0.2);
+        }
+        .tool-card img {
+            width: 70px;
+            height: 70px;
+            margin-bottom: 15px;
+            filter: drop-shadow(0 0 5px #ff6600);
+        }
+        .tool-card h2 {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+        }
+        .tool-card p {
+            font-size: 0.75rem;
+            color: #ccc;
+        }
+
+        .back-btn {
+            display: inline-block;
+            background: transparent;
+            border: 2px solid #ff6600;
+            color: #ff6600;
+            padding: 10px 30px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-family: monospace;
+            font-size: 1.1rem;
+            font-weight: bold;
+            transition: 0.2s;
+            margin-top: 20px;
+        }
+        .back-btn:hover {
+            background: #ff6600;
+            color: black;
+            box-shadow: 0 0 20px #ff6600;
+            transform: scale(1.02);
+        }
+    </style>
+</head>
+<body>
+    <canvas id="bg-canvas"></canvas>
+    <div class="glow-overlay"></div>
+    <div class="container">
+        <h1>⚔️ SELECT ATTACK MODULE</h1>
+        <div class="tools-grid">
+            <!-- HYDRA -->
+            <div class="tool-card" onclick="location.href='/hydra'">
+                <img src="https://img.icons8.com/color/96/000000/hydra.png" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%221em%22 font-size=%2290%22%3E🐉%3C/text%3E%3C/svg%3E'">
+                <h2>HYDRA</h2>
+                <p>Online brute force</p>
+            </div>
+            
+            <!-- JOHN -->
+            <div class="tool-card" onclick="location.href='/john'">
+                <img src="https://img.icons8.com/color/96/000000/lock--v1.png" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%221em%22 font-size=%2290%22%3E🔑%3C/text%3E%3C/svg%3E'">
+                <h2>JOHN</h2>
+                <p>Hash cracker</p>
+            </div>
+            
+            <!-- NMAP -->
+            <div class="tool-card" onclick="location.href='/nmap'">
+                <img src="https://img.icons8.com/color/96/000000/nmap.png" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%221em%22 font-size=%2290%22%3E🌐%3C/text%3E%3C/svg%3E'">
+                <h2>NMAP</h2>
+                <p>Network scanner</p>
+            </div>
+            
+            <!-- WIFI TOOL -->
+            <div class="tool-card" onclick="location.href='/wifi-tool'">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='1em' font-size='90'%3E📡%3C/text%3E%3C/svg%3E">
+                <h2>WIFI TOOL</h2>
+                <p>Scanner & Cracker</p>
+            </div>
+            
+            <!-- REVERSE SHELL - ADDED -->
+            <div class="tool-card" onclick="location.href='/reverse-shell-web.html'">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='1em' font-size='90'%3E💻%3C/text%3E%3C/svg%3E">
+                <h2>REVERSE SHELL</h2>
+                <p>Remote Access</p>
+            </div>
+        </div>
+        <div>
+            <a href="home.html" class="back-btn">⬅ BACK TO HOME</a>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let particles = [];
+        let time = 0;
+
+        function resize() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+            initParticles();
+        }
+
+        function initParticles() {
+            particles = [];
+            const count = 150;
+            for (let i = 0; i < count; i++) {
+                particles.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    radius: 3 + Math.random() * 5,
+                    speedX: (Math.random() - 0.5) * 0.6,
+                    speedY: (Math.random() - 0.5) * 0.6,
+                    alpha: 0.6 + Math.random() * 0.4,
+                    color: `hsl(${20 + Math.random() * 30}, 100%, 60%)`
+                });
+            }
+        }
+
+        function drawGrid() {
+            ctx.strokeStyle = 'rgba(255, 102, 0, 0.15)';
+            ctx.lineWidth = 1;
+            const step = 50;
+            const offset = time % step;
+            for (let x = -step; x < width + step; x += step) {
+                ctx.beginPath();
+                ctx.moveTo(x + offset, 0);
+                ctx.lineTo(x + offset, height);
+                ctx.stroke();
+            }
+            for (let y = -step; y < height + step; y += step) {
+                ctx.beginPath();
+                ctx.moveTo(0, y + offset);
+                ctx.lineTo(width, y + offset);
+                ctx.stroke();
+            }
+        }
+
+        function drawParticles() {
+            for (let p of particles) {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.fill();
+                ctx.shadowBlur = 12;
+                ctx.shadowColor = '#ff6600';
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                p.x += p.speedX;
+                p.y += p.speedY;
+                if (p.x < -20) p.x = width + 20;
+                if (p.x > width + 20) p.x = -20;
+                if (p.y < -20) p.y = height + 20;
+                if (p.y > height + 20) p.y = -20;
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, width, height);
+            drawGrid();
+            drawParticles();
+            time += 0.5;
+            requestAnimationFrame(draw);
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+        draw();
+    </script>
+</body>
+</html>

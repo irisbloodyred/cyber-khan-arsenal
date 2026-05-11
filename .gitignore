@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyc
+venv/
+env/
+.env
+
+# Sensitive files
+password.txt
+*.db
+*.log
+*.pot
+*.pem
+*.key
+
+# Uploads
+uploads/
+*.txt
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

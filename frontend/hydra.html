@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THC-HYDRA v9.9 - Professional Brute Force Tool</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0a0c0f;
+            font-family: 'Courier New', monospace;
+            padding: 1.5rem;
+            color: #00ffbf;
+        }
+        .hydra-core {
+            max-width: 1400px;
+            margin: auto;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(4px);
+            border: 1px solid #ff6600;
+            border-radius: 20px;
+            padding: 1.5rem;
+        }
+        .hydra-header {
+            border-bottom: 2px solid #ff6600;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        h1 { color: #ff6600; font-size: 1.8rem; }
+        .badge { background: #ff6600; color: black; padding: 0.2rem 0.8rem; border-radius: 20px; font-size: 0.7rem; }
+        .config-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .input-row { display: flex; flex-direction: column; gap: 0.4rem; }
+        .input-row label { font-size: 0.7rem; color: #ffaa00; text-transform: uppercase; font-weight: bold; }
+        .input-row input, .input-row select {
+            background: #111;
+            border: 1px solid #ff6600;
+            padding: 10px;
+            color: #ffaa00;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+        .section-title {
+            background: #1a1a2a;
+            padding: 0.5rem 1rem;
+            margin: 1rem 0;
+            border-left: 4px solid #ff6600;
+            font-weight: bold;
+        }
+        .form-builder {
+            background: #0a0a0a;
+            border: 1px solid #ff660033;
+            border-radius: 12px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        .form-preview {
+            background: #0a2a0a;
+            border: 1px solid #00ffbf;
+            border-radius: 8px;
+            padding: 0.8rem;
+            font-size: 0.75rem;
+            color: #88ff88;
+            word-break: break-all;
+            font-family: monospace;
+            margin-top: 1rem;
+        }
+        .action-bar {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin: 1.5rem 0;
+            padding: 1rem 0;
+            border-top: 1px solid #ff6600;
+            border-bottom: 1px solid #ff6600;
+        }
+        button {
+            background: #ff6600;
+            color: black;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 30px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: monospace;
+            font-size: 1rem;
+        }
+        button:hover { background: #ff8833; }
+        button.danger { background: #333; color: #ff6600; border: 1px solid #ff6600; }
+        .status-led { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; }
+        .led { width: 12px; height: 12px; background: #a1a153; border-radius: 50%; }
+        .led.active { background: #3fcf3f; animation: pulse 1s infinite; }
+        .led.found { background: #00ff00; box-shadow: 0 0 10px #00ff00; }
+        @keyframes pulse { 0% { opacity: 0.5; } 100% { opacity: 1; } }
+        .console-window {
+            background: #0a0a0a;
+            border: 1px solid #ff6600;
+            border-radius: 12px;
+            min-height: 350px;
+            max-height: 450px;
+            overflow-y: auto;
+            padding: 1rem;
+            font-size: 12px;
+            color: #88ff88;
+            white-space: pre-wrap;
+        }
+        .upload-area {
+            background: #1a1a2a;
+            border: 2px dashed #ff6600;
+            border-radius: 12px;
+            padding: 8px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .upload-area:hover { border-color: #00ffbf; }
+        .upload-status { font-size: 0.65rem; color: #88ff88; margin-top: 5px; }
+        .upload-label { cursor: pointer; display: block; }
+        .wordlist-file, .username-file { display: none; }
+        .progress-bar { width: 100%; height: 4px; background: #222; border-radius: 2px; margin: 10px 0; overflow: hidden; }
+        .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #ff6600, #00ff88); transition: width 0.3s; }
+        .stats-bar { display: flex; gap: 20px; font-size: 0.7rem; color: #ffaa00; margin-top: 8px; }
+        .stats-bar span { color: #88ff88; }
+        a { color: #00ffbf; text-decoration: none; display: inline-block; margin-top: 1rem; }
+        .username-mode {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 5px;
+        }
+        .mode-switch {
+            display: flex;
+            gap: 5px;
+            background: #1a1a2a;
+            padding: 3px;
+            border-radius: 30px;
+        }
+        .mode-option {
+            padding: 4px 12px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            color: #888;
+        }
+        .mode-option.active {
+            background: #ff6600;
+            color: black;
+        }
+    </style>
+</head>
+<body>
+<div class="hydra-core">
+    <div class="hydra-header">
+        <h1>🐉 THC-HYDRA v9.9</h1>
+        <span class="badge">REAL BRUTE FORCE ENGINE</span>
+    </div>
+
+    <div class="config-panel">
+        <div class="input-row">
+            <label>🎯 Target IP/Domain</label>
+            <input type="text" id="targetHost" placeholder="127.0.0.1 or example.com" value="127.0.0.1">
+        </div>
+        
+        <!-- Username Mode Selection -->
+        <div class="input-row">
+            <label>👤 Username Mode</label>
+            <div class="username-mode">
+                <div class="mode-switch" id="usernameModeSwitch">
+                    <span class="mode-option active" data-mode="single">Single Username</span>
+                    <span class="mode-option" data-mode="list">Username List</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Single Username Field -->
+        <div class="input-row" id="singleUsernameDiv">
+            <label>👤 Single Username</label>
+            <input type="text" id="username" placeholder="admin" value="admin">
+        </div>
+        
+        <!-- Username List Upload (hidden by default) -->
+        <div class="input-row" id="usernameListDiv" style="display:none;">
+            <label>📋 Username List File</label>
+            <div class="upload-area" id="usernameUploadArea">
+                <label for="usernameFile" class="upload-label">📁 Click to upload usernames.txt</label>
+                <input type="file" id="usernameFile" class="username-file" accept=".txt,.lst">
+                <div class="upload-status" id="usernameUploadStatus"></div>
+            </div>
+            <input type="text" id="usernameListPath" placeholder="Or server path to usernames.txt">
+        </div>
+        
+        <div class="input-row">
+            <label>⚙️ Attack Type</label>
+            <select id="attackType">
+                <option value="local_unix">🏴 LOCAL UNIX (su command)</option>
+                <option value="ssh">🔐 SSH Remote</option>
+                <option value="ftp">📁 FTP</option>
+                <option value="http-post-form" selected>🌐 HTTP POST Form (Website)</option>
+                <option value="https-post-form">🔒 HTTPS POST Form</option>
+            </select>
+        </div>
+        <div class="input-row">
+            <label>📦 Port</label>
+            <input type="text" id="port" placeholder="8080" value="8080">
+        </div>
+    </div>
+
+    <div id="formBuilderSection" class="form-builder">
+        <div class="section-title">🌐 WEBSITE LOGIN FORM BUILDER</div>
+        <div class="config-panel">
+            <div class="input-row">
+                <label>📂 Form Action Path</label>
+                <input type="text" id="formPath" value="/login.php">
+            </div>
+            <div class="input-row">
+                <label>👤 Username Parameter Name</label>
+                <input type="text" id="userParam" value="username">
+            </div>
+            <div class="input-row">
+                <label>🔑 Password Parameter Name</label>
+                <input type="text" id="passParam" value="password">
+            </div>
+            <div class="input-row">
+                <label>➕ Extra Parameters</label>
+                <input type="text" id="extraParams" value="submit=Login">
+            </div>
+            <div class="input-row">
+                <label>❌ Failed Login String (text on failed page)</label>
+                <input type="text" id="failString" value="Invalid credentials">
+            </div>
+        </div>
+        <div class="form-preview">
+            <strong>📝 Generated Form String:</strong><br>
+            <span id="generatedFormString">/login.php:username=^USER^&password=^PASS^&submit=Login:Invalid credentials</span>
+        </div>
+    </div>
+
+    <div class="config-panel">
+        <div class="input-row">
+            <label>📂 Password Wordlist</label>
+            <div class="upload-area" id="uploadArea">
+                <label for="wordlistFile" class="upload-label">📁 Click to upload (.txt)</label>
+                <input type="file" id="wordlistFile" class="wordlist-file" accept=".txt,.lst,.wordlist">
+                <div class="upload-status" id="uploadStatus"></div>
+            </div>
+            <input type="text" id="serverPath" placeholder="Or server path: /tmp/passwords.txt" value="/tmp/passwords.txt">
+        </div>
+        <div class="input-row">
+            <label>⚡ Attack Mode</label>
+            <select id="attackMode">
+                <option value="dictionary">📖 Dictionary</option>
+                <option value="smart">🧠 Smart</option>
+                <option value="hybrid">🔀 Hybrid</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="action-bar">
+        <button id="startBtn">▶ START ATTACK</button>
+        <button id="stopBtn" class="danger" style="display:none;">⏹ STOP</button>
+        <button id="clearBtn" class="danger">🗑️ CLEAR CONSOLE</button>
+        <div class="status-led">
+            <span class="led" id="attackLed"></span>
+            <span id="statusText">idle</span>
+            <span id="passwordFound" style="color:#00ff00;display:none;">🔓 CREDENTIALS FOUND!</span>
+        </div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="stats-bar">
+        <div>Attempts: <span id="attemptCount">0</span></div>
+        <div>Speed: <span id="speedCount">0</span>/s</div>
+        <div>Time: <span id="timeCount">0s</span></div>
+    </div>
+    <div class="console-window" id="consoleOutput"><pre>[*] Ready. Fill the form and click START.
+[*] Supports both single username and username list attacks.</pre></div>
+    <a href="home.html">⬅ BACK TO HOME</a>
+</div>
+
+<script>
+    // DOM Elements
+    const attackType = document.getElementById('attackType');
+    const formBuilderSection = document.getElementById('formBuilderSection');
+    const targetHostInput = document.getElementById('targetHost');
+    const usernameInput = document.getElementById('username');
+    const usernameListPath = document.getElementById('usernameListPath');
+    const portInput = document.getElementById('port');
+    const formPath = document.getElementById('formPath');
+    const userParam = document.getElementById('userParam');
+    const passParam = document.getElementById('passParam');
+    const extraParams = document.getElementById('extraParams');
+    const failString = document.getElementById('failString');
+    const generatedFormStringSpan = document.getElementById('generatedFormString');
+    const attackModeSelect = document.getElementById('attackMode');
+    const serverPathInput = document.getElementById('serverPath');
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const outputDiv = document.getElementById('consoleOutput');
+    const attackLed = document.getElementById('attackLed');
+    const statusSpan = document.getElementById('statusText');
+    const credentialsFoundSpan = document.getElementById('passwordFound');
+    const progressFill = document.getElementById('progressFill');
+    const attemptCountSpan = document.getElementById('attemptCount');
+    const speedCountSpan = document.getElementById('speedCount');
+    const timeCountSpan = document.getElementById('timeCount');
+    
+    // Username mode elements
+    const singleUsernameDiv = document.getElementById('singleUsernameDiv');
+    const usernameListDiv = document.getElementById('usernameListDiv');
+    const modeOptions = document.querySelectorAll('.mode-option');
+    let useUsernameList = false;
+
+    // Username Mode Toggle
+    modeOptions.forEach(opt => {
+        opt.addEventListener('click', () => {
+            modeOptions.forEach(o => o.classList.remove('active'));
+            opt.classList.add('active');
+            useUsernameList = opt.dataset.mode === 'list';
+            
+            if (useUsernameList) {
+                singleUsernameDiv.style.display = 'none';
+                usernameListDiv.style.display = 'flex';
+            } else {
+                singleUsernameDiv.style.display = 'flex';
+                usernameListDiv.style.display = 'none';
+            }
+        });
+    });
+
+    let isRunning = false;
+    let attackStartTime = 0;
+    let attemptCounter = 0;
+
+    // Form Builder Toggle & Preview
+    function toggleFormBuilder() {
+        const type = attackType.value;
+        formBuilderSection.style.display = (type === 'http-post-form' || type === 'https-post-form') ? 'block' : 'none';
+        updateFormPreview();
+    }
+
+    function updateFormPreview() {
+        const path = formPath.value.trim() || '/login.php';
+        const userParamVal = userParam.value.trim() || 'username';
+        const passParamVal = passParam.value.trim() || 'password';
+        let extra = extraParams.value.trim();
+        const fail = failString.value.trim() || 'Invalid';
+        
+        let formData = `${userParamVal}=^USER^&${passParamVal}=^PASS^`;
+        if (extra) {
+            if (!extra.startsWith('&')) {
+                extra = '&' + extra;
+            }
+            formData += extra;
+        }
+        const formString = `${path}:${formData}:${fail}`;
+        generatedFormStringSpan.innerText = formString;
+    }
+
+    [formPath, userParam, passParam, extraParams, failString, attackType].forEach(el => {
+        el.addEventListener('input', updateFormPreview);
+        el.addEventListener('change', updateFormPreview);
+    });
+    updateFormPreview();
+    toggleFormBuilder();
+    attackType.addEventListener('change', toggleFormBuilder);
+
+    // Password File Upload
+    const pwdFileInput = document.getElementById('wordlistFile');
+    const pwdUploadStatus = document.getElementById('uploadStatus');
+    
+    async function uploadPwdFile(file) {
+        let fd = new FormData();
+        fd.append('file', file);
+        pwdUploadStatus.innerHTML = '⏳ Uploading...';
+        try {
+            let res = await fetch('/api/upload-wordlist', { method: 'POST', body: fd });
+            let data = await res.json();
+            if (data.status === 'success') {
+                serverPathInput.value = data.path;
+                pwdUploadStatus.innerHTML = `✅ Uploaded: ${file.name}`;
+            } else throw new Error(data.message);
+        } catch (e) { pwdUploadStatus.innerHTML = `❌ Upload failed: ${e.message}`; }
+    }
+    pwdFileInput.addEventListener('change', (e) => { if (e.target.files.length) uploadPwdFile(e.target.files[0]); });
+
+    // Username File Upload
+    const usernameFileInput = document.getElementById('usernameFile');
+    const usernameUploadStatus = document.getElementById('usernameUploadStatus');
+    
+    async function uploadUsernameFile(file) {
+        let fd = new FormData();
+        fd.append('file', file);
+        usernameUploadStatus.innerHTML = '⏳ Uploading...';
+        try {
+            let res = await fetch('/api/upload-wordlist', { method: 'POST', body: fd });
+            let data = await res.json();
+            if (data.status === 'success') {
+                usernameListPath.value = data.path;
+                usernameUploadStatus.innerHTML = `✅ Uploaded: ${file.name}`;
+            } else throw new Error(data.message);
+        } catch (e) { usernameUploadStatus.innerHTML = `❌ Upload failed: ${e.message}`; }
+    }
+    usernameFileInput.addEventListener('change', (e) => { if (e.target.files.length) uploadUsernameFile(e.target.files[0]); });
+
+    // Console Output
+    function appendOutput(text, isErr = false) {
+        let pre = document.createElement('pre');
+        pre.style.margin = '0';
+        pre.style.whiteSpace = 'pre-wrap';
+        pre.style.color = isErr ? '#ff8888' : '#88ff88';
+        pre.innerText = text;
+        outputDiv.appendChild(pre);
+        outputDiv.scrollTop = outputDiv.scrollHeight;
+    }
+
+    // Stats Update Loop
+    function updateStats() {
+        if (!isRunning) return;
+        const elapsed = (Date.now() - attackStartTime) / 1000;
+        timeCountSpan.innerText = Math.floor(elapsed) + 's';
+        const rate = attemptCounter / Math.max(elapsed, 1);
+        speedCountSpan.innerText = Math.floor(rate);
+        requestAnimationFrame(updateStats);
+    }
+
+    // Start Attack
+    async function startAttack() {
+        if (isRunning) { appendOutput('[!] Attack already running', true); return; }
+        
+        let targetHost = targetHostInput.value.trim();
+        let port = portInput.value.trim();
+        let wordlist = serverPathInput.value.trim();
+        let service = attackType.value;
+        let mode = attackModeSelect.value;
+        
+        if (!wordlist) {
+            appendOutput('[!] Password wordlist required', true);
+            return;
+        }
+        
+        let params = {
+            target: targetHost,
+            wordlist: wordlist,
+            service: service,
+            port: port,
+            mode: mode
+        };
+        
+        // Handle username (single or list)
+        if (useUsernameList) {
+            let usernameList = usernameListPath.value.trim();
+            if (!usernameList) {
+                appendOutput('[!] Username list required for list mode', true);
+                return;
+            }
+            params.username_list = usernameList;  // Will use -L in backend
+            appendOutput(`[>] Using username list: ${usernameList}`);
+        } else {
+            let user = usernameInput.value.trim();
+            if (!user) {
+                appendOutput('[!] Username required', true);
+                return;
+            }
+            params.user = user;
+            appendOutput(`[>] Using single username: ${user}`);
+        }
+        
+        // For HTTP forms
+        if (service === 'http-post-form' || service === 'https-post-form') {
+            const formString = generatedFormStringSpan.innerText;
+            if (!formString) {
+                appendOutput('[!] Invalid form configuration', true);
+                return;
+            }
+            params.target = formString;
+            params.host = targetHost;
+            params.port = port;
+            appendOutput(`[>] Target Host: ${targetHost}:${port || '80'}`);
+            appendOutput(`[>] HTTP Form String: ${formString}`);
+        }
+        
+        appendOutput(`[>] Starting ${service} attack`);
+        appendOutput(`[>] Mode: ${mode} | Password Wordlist: ${wordlist}`);
+        
+        attackLed.className = 'led active';
+        statusSpan.innerText = 'attacking';
+        credentialsFoundSpan.style.display = 'none';
+        isRunning = true;
+        attackStartTime = Date.now();
+        attemptCounter = 0;
+        startBtn.style.display = 'none';
+        stopBtn.style.display = 'inline-block';
+        progressFill.style.width = '0%';
+        
+        updateStats();
+        
+        try {
+            let response = await fetch('/api/run-hydra', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(params)
+            });
+            let data = await response.json();
+            
+            if (data.status === 'success') {
+                appendOutput(data.output);
+                if (data.found) {
+                    attackLed.className = 'led found';
+                    statusSpan.innerText = '✅ FOUND!';
+                    credentialsFoundSpan.style.display = 'inline';
+                    appendOutput(`\n⭐ CREDENTIALS FOUND: ${data.found_user || data.user}:${data.password || 'found'}`, false);
+                    progressFill.style.width = '100%';
+                } else {
+                    attackLed.className = 'led';
+                    statusSpan.innerText = 'completed (no match)';
+                }
+            } else if (data.status === 'stopped') {
+                appendOutput('[!] Attack stopped by user', true);
+                attackLed.className = 'led';
+                statusSpan.innerText = 'stopped';
+            } else {
+                appendOutput(`❌ Error: ${data.message}`, true);
+                attackLed.className = 'led';
+                statusSpan.innerText = 'error';
+            }
+        } catch (err) {
+            appendOutput(`❌ Network error: ${err.message}`, true);
+            attackLed.className = 'led';
+            statusSpan.innerText = 'error';
+        } finally {
+            isRunning = false;
+            startBtn.style.display = 'inline-block';
+            stopBtn.style.display = 'none';
+        }
+    }
+    
+    // Stop Attack
+    async function stopAttack() {
+        appendOutput('[!] Sending stop signal...', true);
+        try {
+            await fetch('/api/stop-hydra', { method: 'POST' });
+        } catch(e) {}
+    }
+    
+    // Event Listeners
+    startBtn.onclick = startAttack;
+    stopBtn.onclick = stopAttack;
+    clearBtn.onclick = () => {
+        outputDiv.innerHTML = '<pre>[>] Console cleared.</pre>';
+        attemptCountSpan.innerText = '0';
+        speedCountSpan.innerText = '0';
+        timeCountSpan.innerText = '0s';
+        progressFill.style.width = '0%';
+        credentialsFoundSpan.style.display = 'none';
+    };
+</script>
+</body>
+</html>

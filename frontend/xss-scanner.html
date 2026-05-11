@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XSS Vulnerability Scanner - Khan Tool</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0a0f0f;
+            font-family: 'Inter', 'Segoe UI', monospace;
+            color: #e0f2fe;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            background: rgba(15, 25, 30, 0.9);
+            backdrop-filter: blur(6px);
+            border: 1px solid #2ecc71;
+            border-radius: 2rem;
+            padding: 2rem;
+        }
+        h1 { text-align: center; color: #2ecc71; margin-bottom: 0.5rem; }
+        .sub { text-align: center; color: #8bb; margin-bottom: 2rem; }
+        .input-group { margin-bottom: 1.5rem; }
+        label { display: block; font-weight: 600; margin-bottom: 0.5rem; color: #ccc; }
+        input, textarea, select {
+            width: 100%;
+            padding: 0.8rem 1.2rem;
+            background: #1e2a2a;
+            border: 1px solid #2ecc71;
+            border-radius: 1rem;
+            color: #2ecc71;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+        textarea { font-family: monospace; resize: vertical; }
+        .btn {
+            background: #2ecc71;
+            color: #0a0f0f;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 1rem;
+        }
+        .btn:hover { background: #27ae60; transform: scale(1.02); box-shadow: 0 0 12px #2ecc71; }
+        .results-area {
+            background: #0f1919;
+            border-radius: 1.2rem;
+            padding: 1.2rem;
+            margin-top: 1.5rem;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .vuln-item {
+            background: #1a2a2a;
+            border-left: 4px solid #e74c3c;
+            padding: 0.8rem;
+            margin: 0.8rem 0;
+            border-radius: 0.8rem;
+            font-family: monospace;
+            font-size: 0.8rem;
+        }
+        .safe-item {
+            background: #0f1a1a;
+            border-left: 4px solid #2ecc71;
+            padding: 0.5rem;
+            margin: 0.5rem 0;
+            border-radius: 0.8rem;
+            opacity: 0.7;
+        }
+        .summary {
+            background: #0a1212;
+            padding: 1rem;
+            border-radius: 1rem;
+            margin-bottom: 1rem;
+        }
+        .badge-vuln { background: #e74c3c; color: white; padding: 0.2rem 0.6rem; border-radius: 1rem; font-size: 0.7rem; }
+        .badge-safe { background: #2ecc71; color: black; padding: 0.2rem 0.6rem; border-radius: 1rem; font-size: 0.7rem; }
+        .loading { text-align: center; padding: 2rem; }
+        .spinner { display: inline-block; width: 40px; height: 40px; border: 3px solid #2ecc7133; border-top-color: #2ecc71; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        hr { border-color: #2ecc7133; margin: 1rem 0; }
+        a { color: #2ecc71; text-decoration: none; border: 1px solid #2ecc71; padding: 0.5rem 1.5rem; border-radius: 2rem; display: inline-block; margin-top: 1rem; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🔍 XSS VULNERABILITY SCANNER</h1>
+    <div class="sub">Cross-Site Scripting Detection Engine | Real HTTP Requests</div>
+
+    <div class="input-group">
+        <label>🎯 Target URL (with parameter)</label>
+        <input type="text" id="targetUrl" placeholder="http://testphp.vulnweb.com/artists.php?artist=1" value="http://testphp.vulnweb.com/artists.php?artist=1">
+        <small style="color:#888;">Example: http://testphp.vulnweb.com/artists.php?artist=1</small>
+    </div>
+
+    <div class="input-group">
+        <label>📝 Custom Payloads (one per line, optional)</label>
+        <textarea id="customPayloads" rows="5" placeholder="&lt;script&gt;alert('XSS')&lt;/script&gt;
+&lt;img src=x onerror=alert(1)&gt;
+&lt;svg onload=alert(1)&gt;
+&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;"></textarea>
+    </div>
+
+    <button id="scanBtn" class="btn">🚀 START XSS SCAN</button>
+
+    <div id="results" class="results-area">
+        <div class="summary">⚡ Ready to scan. Enter a URL with parameter and click Start.</div>
+    </div>
+
+    <div style="text-align: center; margin-top: 1.5rem;">
+        <a href="home.html">⬅ BACK TO HOME</a>
+    </div>
+</div>
+
+<script>
+    const targetInput = document.getElementById('targetUrl');
+    const payloadsTextarea = document.getElementById('customPayloads');
+    const scanBtn = document.getElementById('scanBtn');
+    const resultsDiv = document.getElementById('results');
+
+    async function startScan() {
+        let targetUrl = targetInput.value.trim();
+        if (!targetUrl) {
+            resultsDiv.innerHTML = '<div class="summary">❌ Please enter a target URL</div>';
+            return;
+        }
+
+        // Ensure URL has a parameter
+        if (!targetUrl.includes('=')) {
+            resultsDiv.innerHTML = '<div class="summary">⚠️ URL must contain a parameter (e.g., ?id=1 or ?q=test)</div>';
+            return;
+        }
+
+        let customPayloads = [];
+        const payloadsRaw = payloadsTextarea.value.trim();
+        if (payloadsRaw) {
+            customPayloads = payloadsRaw.split('\n').filter(p => p.trim().length > 0);
+        }
+
+        resultsDiv.innerHTML = `
+            <div class="loading">
+                <div class="spinner"></div>
+                <div>🔍 Scanning ${targetUrl}...</div>
+                <div style="font-size:0.7rem; margin-top:10px;">Testing payloads for XSS vulnerabilities</div>
+            </div>
+        `;
+
+        try {
+            const response = await fetch('/api/xss-scan', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    url: targetUrl,
+                    payloads: customPayloads
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                displayResults(data);
+            } else {
+                resultsDiv.innerHTML = `<div class="summary">❌ Scan failed: ${data.message || 'Unknown error'}</div>`;
+            }
+        } catch (err) {
+            resultsDiv.innerHTML = `<div class="summary">❌ Connection error: ${err.message}</div>`;
+        }
+    }
+
+    function displayResults(data) {
+        const vulnerableCount = data.vulnerable_payloads || 0;
+        const totalTested = data.payloads_tested || 0;
+        const results = data.results || [];
+
+        let html = `
+            <div class="summary">
+                <strong>📊 SCAN SUMMARY</strong><br>
+                🎯 Target: ${data.target}<br>
+                📦 Payloads tested: ${totalTested}<br>
+                🔴 Vulnerable payloads: <span style="color:${vulnerableCount > 0 ? '#e74c3c' : '#2ecc71'}">${vulnerableCount}</span><br>
+                ${vulnerableCount > 0 ? '<span class="badge-vuln">⚠️ XSS VULNERABILITY DETECTED</span>' : '<span class="badge-safe">✅ No XSS detected with tested payloads</span>'}
+            </div>
+            <hr>
+            <div><strong>📋 DETAILED RESULTS:</strong></div>
+        `;
+
+        for (const result of results) {
+            if (result.vulnerable) {
+                html += `
+                    <div class="vuln-item">
+                        🔴 <strong>VULNERABLE</strong><br>
+                        📝 Payload: <code style="word-break:break-all;">${escapeHtml(result.payload)}</code><br>
+                        📡 Status: ${result.status_code || 'N/A'}<br>
+                        ${result.reflected_in ? `💥 Reflected in: ${result.reflected_in}` : ''}
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div class="safe-item">
+                        🟢 <strong>SAFE</strong><br>
+                        📝 Payload: <code style="word-break:break-all;">${escapeHtml(result.payload.substring(0, 80))}${result.payload.length > 80 ? '...' : ''}</code>
+                        ${result.error ? `<br>⚠️ Error: ${result.error}` : ''}
+                    </div>
+                `;
+            }
+        }
+
+        resultsDiv.innerHTML = html;
+    }
+
+    function escapeHtml(str) {
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        }).replace(/"/g, '&quot;');
+    }
+
+    scanBtn.addEventListener('click', startScan);
+</script>
+</body>
+</html>
