@@ -28,6 +28,9 @@ from secrets import token_urlsafe
 from werkzeug.utils import secure_filename
 import platform
 import nmap
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # --------------------------- SINGLE FLASK APP ---------------------------
 app = Flask(__name__, template_folder='../frontend', static_folder='../frontend', static_url_path='')
@@ -75,16 +78,19 @@ def no_cache_html(response):
         response.headers['Expires'] = '0'
     return response
 
-# ================= EMAIL ACCOUNTS =================
+# ================= EMAIL ACCOUNTS (Loaded from .env) =================
 EMAIL_ACCOUNTS = [
-    {'name': 'KHAN TOOL 5', 'username': 'xdkhan783@gmail.com', 'password': 'cozpxrbolwtxxcba'},
-    {'name': 'KHAN TOOL 1', 'username': 'israrahmed8609@gmail.com', 'password': 'fcqkwclxsljkhtpf'},
-    {'name': 'KHAN TOOL 2', 'username': 'kh1472356@gmail.com', 'password': 'dcbrkvbhuembxxjh'},
-    {'name': 'KHAN TOOL 3', 'username': 'kh1472356@gmail.com', 'password': 'tlvnaghapyejnins'},
-    {'name': 'KHAN TOOL 4', 'username': 'israrahmed8609@gmail.com', 'password': 'xgywwusfynyeoehc'},
+    {'name': 'KHAN TOOL 1', 'username': os.getenv('EMAIL_USER1'), 'password': os.getenv('EMAIL_PASS1')},
+    {'name': 'KHAN TOOL 2', 'username': os.getenv('EMAIL_USER2'), 'password': os.getenv('EMAIL_PASS2')},
+    {'name': 'KHAN TOOL 3', 'username': os.getenv('EMAIL_USER3'), 'password': os.getenv('EMAIL_PASS3')},
+    {'name': 'KHAN TOOL 4', 'username': os.getenv('EMAIL_USER4'), 'password': os.getenv('EMAIL_PASS4')},
+    {'name': 'KHAN TOOL 5', 'username': os.getenv('EMAIL_USER5'), 'password': os.getenv('EMAIL_PASS5')},
 ]
+EMAIL_ACCOUNTS = [acc for acc in EMAIL_ACCOUNTS if acc['username'] and acc['password']]
+
 for acc in EMAIL_ACCOUNTS:
-    acc['password'] = re.sub(r'\s+', '', acc['password'])
+    if acc['password']:
+        acc['password'] = re.sub(r'\s+', '', acc['password'])
 
 SENDER_DISPLAY_NAME = "⚔️ KHAN TOOL | RED TEAM SECURITY ⚔️"
 
