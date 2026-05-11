@@ -68,59 +68,43 @@ pip install -r requirements.txt
 sudo python3 app.py
 
 📱 Mobile (Termux - Android)
-# Step 1: Update and install dependencies
 pkg update && pkg upgrade
 pkg install git python nmap hydra
-
-# Step 2: Clone repository
 git clone https://github.com/irisbloodyred/cyber-khan-arsenal.git
 cd cyber-khan-arsenal/backend
-
-# Step 3: Install Python packages
 pip install flask flask-cors flask-limiter requests
-
-# Step 4: Run the server
 python3 app.py
 
-# Step 5: Access in browser
-# Open http://localhost:5000 in Termux or your mobile browser
-
 🪟 Windows (WSL Recommended)
-# Install Windows Subsystem for Linux
 wsl --install
-
 # Then follow Linux installation steps above
 
-## 📱 Contact & Connect
+📱 Contact & Connect
 
-<div align="center">
-  <a href="https://wa.me/923355380285" target="_blank">
-    <img src="https://img.shields.io/badge/WhatsApp-25D366?style=for-the-badge&logo=whatsapp&logoColor=white" alt="WhatsApp">
-  </a>
-  <a href="https://t.me/KhanHackerRedTeam" target="_blank">
-    <img src="https://img.shields.io/badge/Telegram-26A5E4?style=for-the-badge&logo=telegram&logoColor=white" alt="Telegram">
-  </a>
-  <a href="mailto:rehantanoli8609@gmail.com">
-    <img src="https://img.shields.io/badge/Email-D14836?style=for-the-badge&logo=gmail&logoColor=white" alt="Email">
-  </a>
-  <a href="https://github.com/irisbloodyred" target="_blank">
-    <img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub">
-  </a>
-</div>
+<div align="center"> <a href="https://wa.me/923355380285"> <img src="https://img.shields.io/badge/WhatsApp-25D366?style=for-the-badge&logo=whatsapp&logoColor=white" alt="WhatsApp"> </a> <a href="https://t.me/KhanHackerRedTeam"> <img src="https://img.shields.io/badge/Telegram-26A5E4?style=for-the-badge&logo=telegram&logoColor=white" alt="Telegram"> </a> <a href="mailto:rehantanoli8609@gmail.com"> <img src="https://img.shields.io/badge/Email-D14836?style=for-the-badge&logo=gmail&logoColor=white" alt="Email"> </a> <a href="https://github.com/irisbloodyred"> <img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub"> </a> </div>
+📞 WhatsApp	📨 Telegram	📧 Email
++92 335 5380285	@KhanHackerRedTeam	rehantanoli8609@gmail.com
 
-<br>
+⚠️ Legal Disclaimer
 
-<div align="center">
-  <table>
-    <tr>
-      <td align="center">
-        <img src="https://img.shields.io/badge/WhatsApp%20Number-25D366?style=flat&logo=whatsapp&logoColor=white" alt="WhatsApp"><br>
-        <strong>+92 335 5380285</strong>
-      </td>
-      <td align="center">
-        <img src="https://img.shields.io/badge/Telegram%20ID-26A5E4?style=flat&logo=telegram&logoColor=white" alt="Telegram"><br>
-        <strong>@KhanHackerRedTeam</strong>
-      </td>
-    </tr>
-  </table>
-</div>
+    This toolkit is provided for EDUCATIONAL PURPOSES and AUTHORIZED SECURITY TESTING ONLY.
+
+    ✅ DO USE on your own systems or with written permission from the owner
+
+    ❌ DO NOT USE on any system without explicit authorization
+
+    🔒 Attack tools require email OTP verification to prevent misuse
+
+    👨‍⚖️ You are solely responsible for any consequences of using this toolkit
+
+
+👨‍💻 Developer
+Name	Rehan Ahmad
+Email	rehantanoli8609@gmail.com
+Field	Cybersecurity & Ethical Hacking
+GitHub	@irisbloodyred
+
+📜 License
+This project is licensed under the MIT License – free for educational use with attribution.
+<div align="center"> <p>⭐ If you find this toolkit useful, consider giving it a star! ⭐</p> <p><em>Stay hungry. Stay foolish. Stay ethical.</em></p> <p>© 2025-2026 Rehan Ahmad | Khan Toolkit Red Team Suite</p> </div> ```
+
