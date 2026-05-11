@@ -90,3 +90,37 @@ python3 app.py
 wsl --install
 
 # Then follow Linux installation steps above
+
+## 📱 Contact & Connect
+
+<div align="center">
+  <a href="https://wa.me/923355380285" target="_blank">
+    <img src="https://img.shields.io/badge/WhatsApp-25D366?style=for-the-badge&logo=whatsapp&logoColor=white" alt="WhatsApp">
+  </a>
+  <a href="https://t.me/KhanHackerRedTeam" target="_blank">
+    <img src="https://img.shields.io/badge/Telegram-26A5E4?style=for-the-badge&logo=telegram&logoColor=white" alt="Telegram">
+  </a>
+  <a href="mailto:rehantanoli8609@gmail.com">
+    <img src="https://img.shields.io/badge/Email-D14836?style=for-the-badge&logo=gmail&logoColor=white" alt="Email">
+  </a>
+  <a href="https://github.com/irisbloodyred" target="_blank">
+    <img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub">
+  </a>
+</div>
+
+<br>
+
+<div align="center">
+  <table>
+    <tr>
+      <td align="center">
+        <img src="https://img.shields.io/badge/WhatsApp%20Number-25D366?style=flat&logo=whatsapp&logoColor=white" alt="WhatsApp"><br>
+        <strong>+92 335 5380285</strong>
+      </td>
+      <td align="center">
+        <img src="https://img.shields.io/badge/Telegram%20ID-26A5E4?style=flat&logo=telegram&logoColor=white" alt="Telegram"><br>
+        <strong>@KhanHackerRedTeam</strong>
+      </td>
+    </tr>
+  </table>
+</div>
