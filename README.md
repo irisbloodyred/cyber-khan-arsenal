@@ -12,12 +12,7 @@
 
 <br>
 
-<div align="center">
-  <img src="https://img.shields.io/badge/STATUS-🟢_ACTIVE-00FF41?style=for-the-badge"/>
-  <img src="https://img.shields.io/badge/VERSION-2.1-00FF41?style=for-the-badge"/>
-  <img src="https://img.shields.io/badge/LICENSE-MIT-00FF41?style=for-the-badge"/>
-  <img src="https://komarev.com/ghpvc/?username=irisbloodyred&label=🔍%20PROFILE%20VIEWS&color=00FF41&style=for-the-badge"/>
-</div>
+
 
 
 
