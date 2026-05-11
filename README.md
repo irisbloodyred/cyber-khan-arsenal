@@ -7,7 +7,6 @@
 <div align="center">
   <img src="https://media.giphy.com/media/xT9IgzoKnwFNmISR8I/giphy.gif" width="280"/>
   <img src="https://media.giphy.com/media/ZVik7pBtu9dNS/giphy.gif" width="280"/>
-  <img src="https://media.giphy.com/media/l0MYEqEzwMWFCg8rm/giphy.gif" width="280"/>
 </div>
 
 <br>
